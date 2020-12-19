@@ -1,0 +1,6 @@
+{
+  "projectName": "tator",
+  "projectVersion": "0.0.1",
+  "usePromises": true,
+  "legacyDiscriminatorBehavior": false
+}
