@@ -20,6 +20,19 @@ def remove_oneof(data):
             remove_oneof(data[key])
     return data
 
+def remove_problem_additional_properties(data):
+    """ Removes the additionalProperties key from 
+        models that have a problem with it
+    """
+    blocklist = [
+        "EncodeConfig",
+        "ResolutionConfig"
+    ]
+    schemas = data['components']['schemas']
+    for key in blocklist:
+        del schemas[key]['additionalProperties']
+    return data
+
 filepath = sys.argv[1]
 if not os.path.exists(filepath):
         response = requests.get("https://www.tatorapp.com/schema")
@@ -29,5 +42,6 @@ if not os.path.exists(filepath):
 with open(filepath, 'r') as f:
     schema = yaml.load(f, Loader=yaml.FullLoader)
     schema = remove_oneof(schema)
+    schema = remove_problem_additional_properties(schema) 
 with open(filepath, 'w') as f:
     yaml.dump(schema, f, Dumper=NoAliasDumper)
