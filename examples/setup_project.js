@@ -411,39 +411,241 @@ function createStateLatestTypes(tatorApi, projectId, videoTypeId, multiTypeId) {
   }).then(logMessageReturnId, logAndExit);
 }
 
-// TODO: Ask Jon about this
-// function createStateRangeTypes(tatorApi, projectId, videoTypeId) {
-//   tatorApi.createStateType(projectId, {
-//     "name": "Test State",
-//     "description": "Test latest/frame state",
-//     "dtype": "state",
-//     "interpolation": "latest",
-//     "association": "Frame",
-//     "visible": true,
-//     "grouping_default": true,
-//     "media_types": [videoTypeId, multiTypeId],
-//     "attribute_types": [
-//         {
-//             "name": "Activity 1",
-//             "dtype": "bool",
-//             "default": false,
-//             "order": 0,
-//         },
-//         {
-//             "name": "Activity 2",
-//             "dtype": "bool",
-//             "default": false,
-//             "order": 1,
-//         },
-//     ]
-//   }).then(
-//     (createStateTypeResp) => {
-//       console.log(createStateTypeResp.message);
-//       return createStateTypeResp.id;
-//     },
-//     logAndExit
-//   )
-// }
+function createStateRangeTypes(tatorApi, projectId, videoTypeId) {
+  return Promise.all([
+    tatorApi.createStateType(projectId, {
+      "name": "Single Range 0",
+      "description": "Test event 0 information",
+      "dtype": "state",
+      "interpolation": "attr_style_range",
+      "association": "Frame",
+      "visible": true,
+      "grouping_default": false,
+      "media_types": [videoTypeId],
+      "attribute_types": [
+          {
+              "name": "Start Frame",
+              "dtype": "int",
+              "default": -1,
+              "minimum": -1,
+              "style": "start_frame",
+          },
+          {
+              "name": "End Frame",
+              "dtype": "int",
+              "default": -1,
+              "minimum": -1,
+              "style": "end_frame",
+          },
+          {
+              "name": "Notes Area",
+              "dtype": "string",
+              "default": "",
+              "style": "long_string",
+          },
+          {
+              "name": "Disabled Notes Area",
+              "dtype": "string",
+              "default": "Not verified",
+              "style": "disabled long_string"
+          },
+          {
+              "name": "Disabled Field 1",
+              "dtype": "int",
+              "style": "disabled",
+          },
+          {
+              "name": "Disabled Field 2",
+              "dtype": "string",
+              "style": "disabled",
+          },
+      ]
+    }),
+    tatorApi.createStateType(projectId, {
+      "name": "Single Range (Endchecks) 0",
+      "description": "Test event 0 information",
+      "dtype": "state",
+      "interpolation": "attr_style_range",
+      "association": "Frame",
+      "visible": true,
+      "grouping_default": false,
+      "media_types": [videoTypeId],
+      "attribute_types": [
+          {
+              "name": "Start Frame",
+              "dtype": "int",
+              "default": -1,
+              "minimum": -1,
+              "style": "start_frame",
+          },
+          {
+              "name": "End Frame",
+              "dtype": "int",
+              "default": -1,
+              "minimum": -1,
+              "style": "end_frame",
+          },
+          {
+              "name": "Starts In This Video",
+              "dtype": "bool",
+              "default": true,
+              "style": "start_frame_check"
+          },
+          {
+              "name": "Ends In This Video",
+              "dtype": "bool",
+              "default": true,
+              "style": "end_frame_check"
+          },
+          {
+              "name": "Notes Area",
+              "dtype": "string",
+              "default": "",
+              "style": "long_string",
+          },
+          {
+              "name": "Disabled Notes Area",
+              "dtype": "string",
+              "default": "Not verified",
+              "style": "disabled long_string"
+          },
+          {
+              "name": "Disabled Field 1",
+              "dtype": "int",
+              "style": "disabled",
+          },
+          {
+              "name": "Disabled Field 2",
+              "dtype": "string",
+              "style": "disabled",
+          },
+      ]
+    }),
+    tatorApi.createStateType(projectId, {
+      "name": "Test Multirange 0",
+      "description": "Test event 0 information",
+      "dtype": "state",
+      "interpolation": "attr_style_range",
+      "association": "Frame",
+      "visible": true,
+      "grouping_default": false,
+      "media_types": [videoTypeId],
+      "attribute_types": [
+          {
+              "name": "Range2",
+              "default": "Range2 Start Frame|Range2 End Frame|Range2 In Video",
+              "dtype": "string",
+              "style": "range_set",
+              "order": -2,
+          },
+          {
+              "name": "Range 3",
+              "default": "Range3 Start Frame|Range3 End Frame|Range3 In Video",
+              "dtype": "string",
+              "style": "range_set",
+              "order": -3,
+          },
+          {
+              "name": "Range 1",
+              "default": "Range1 Start Frame|Range1 End Frame|Range1 In Video",
+              "dtype": "string",
+              "style": "range_set",
+              "order": -1,
+          },
+          {
+              "name": "Range1 In Video",
+              "dtype": "bool",
+              "default": false,
+              "style": "in_video_check",
+          },
+          {
+              "name": "Range1 Start Frame",
+              "dtype": "int",
+              "default": -1,
+              "minimum": -1,
+              "style": "start_frame",
+          },
+          {
+              "name": "Range1 End Frame",
+              "dtype": "int",
+              "default": -1,
+              "minimum": -1,
+              "style": "end_frame",
+          },
+          {
+              "name": "Range2 In Video",
+              "dtype": "bool",
+              "default": false,
+              "style": "in_video_check",
+          },
+          {
+              "name": "Range2 Start Frame",
+              "dtype": "int",
+              "default": -1,
+              "minimum": -1,
+              "style": "start_frame",
+          },
+          {
+              "name": "Range2 End Frame",
+              "dtype": "int",
+              "default": -1,
+              "minimum": -1,
+              "style": "end_frame",
+          },
+          {
+              "name": "Range3 In Video",
+              "dtype": "bool",
+              "default": false,
+              "style": "in_video_check",
+          },
+          {
+              "name": "Range3 Start Frame",
+              "dtype": "int",
+              "default": -1,
+              "minimum": -1,
+              "style": "start_frame",
+          },
+          {
+              "name": "Range3 End Frame",
+              "dtype": "int",
+              "default": -1,
+              "minimum": -1,
+              "style": "end_frame",
+          },
+          {
+              "name": "Notes Area",
+              "dtype": "string",
+              "default": "",
+              "style": "long_string",
+          },
+          {
+              "name": "Disabled Notes Area",
+              "dtype": "string",
+              "default": "Not verified",
+              "style": "disabled long_string"
+          },
+          {
+              "name": "Disabled Field 1",
+              "dtype": "int",
+              "style": "disabled",
+          },
+          {
+              "name": "Disabled Field 2",
+              "dtype": "string",
+              "style": "disabled",
+          },
+      ]
+    })
+  ]).then(
+      ([singleRangeResp, singleRangeEndchecksResp, multiRangeResp]) => {
+        console.log(singleRangeResp.message);
+        console.log(singleRangeEndchecksResp.message);
+        console.log(multiRangeResp.message);
+        return [singleRangeResp.id, singleRangeEndchecksResp.id, multiRangeResp.id];
+      },
+      logAndExit
+    );
+}
 
 function createTrackType(tatorApi, projectId, videoTypeId) {
   tatorApi.createStateType(projectId, {
@@ -530,7 +732,7 @@ tatorApi.createOrganization(
         }
 
         if (argv.createStateRangeType) {
-          console.log("Would have createStateRangeType here.")
+          createStateRangeTypes(tatorApi, projectId, videoTypeId);
         }
 
         if (argv.createTrackType) {
