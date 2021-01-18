@@ -1,6 +1,6 @@
 const yargs = require('../pkg/node_modules/yargs');
 
-const Tator = require('../pkg');
+const Tator = require('../pkg/dist');
 
 const argv = yargs
   .option('host', {
