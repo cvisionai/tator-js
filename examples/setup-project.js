@@ -1,6 +1,6 @@
-const yargs = require('../pkg/node_modules/yargs');
+const yargs = require('yargs');
 
-const Tator = require('../pkg/dist');
+const Tator = require('..');
 
 const argv = yargs
   .option('host', {
@@ -33,15 +33,6 @@ const argv = yargs
   .help()
   .alias('help', 'h')
   .argv;
-
-function getApi(host='https://www.tatorapp.com', token=process.env.TATOR_TOKEN) {
-  var defaultClient = Tator.ApiClient.instance;
-  var TokenAuth = defaultClient.authentications['TokenAuth'];
-  TokenAuth.apiKey = token;
-  TokenAuth.apiKeyPrefix = "Token";
-  defaultClient.basePath = host;
-  return new Tator.TatorApi()
-}
 
 function logAndExit(error) {
   console.log(error);
@@ -673,7 +664,7 @@ function createTrackType(tatorApi, projectId, videoTypeId) {
   }).then(logMessageReturnId, logAndExit);
 }
 
-var tatorApi = getApi(argv.host, argv.token);
+var tatorApi = Tator.Utils.getApi(argv.host, argv.token);
 
 // Create test organization (reuse project name)
 tatorApi.createOrganization(
