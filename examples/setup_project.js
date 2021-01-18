@@ -48,6 +48,11 @@ function logAndExit(error) {
   return process.exit(1);
 }
 
+function logMessageReturnId(resp) {
+  console.log(resp.message);
+  return resp.id;
+}
+
 function createMediaTypes(tatorApi, projectId) {
   return Promise.all([
     // Create image type.
@@ -182,9 +187,7 @@ function createMediaTypes(tatorApi, projectId) {
       console.log(multiType.message);
       return [imageType.id, videoType.id, multiType.id];
     },
-    (error) => {
-      logAndExit(error); 
-    }
+    logAndExit
   );
 }
 
@@ -377,9 +380,7 @@ function createLocalizationTypes(tatorApi, projectId, imageTypeId, videoTypeId, 
       console.log(dotType.message);
       return [boxType.id, lineType.id, dotType.id];
     },
-    (error) => {
-      logAndExit(error); 
-    }
+    logAndExit
   );
 }
 
@@ -407,15 +408,7 @@ function createStateLatestTypes(tatorApi, projectId, videoTypeId, multiTypeId) {
             "order": 1,
         },
     ]
-  }).then(
-    (createStateTypeResp) => {
-      console.log(createStateTypeResp.message);
-      return createStateTypeResp.id;
-    },
-    (error) => {
-      logAndExit(error);
-    }
-  )
+  }).then(logMessageReturnId, logAndExit);
 }
 
 // TODO: Ask Jon about this
@@ -448,9 +441,7 @@ function createStateLatestTypes(tatorApi, projectId, videoTypeId, multiTypeId) {
 //       console.log(createStateTypeResp.message);
 //       return createStateTypeResp.id;
 //     },
-//     (error) => {
-//       logAndExit(error);
-//     }
+//     logAndExit
 //   )
 // }
 
@@ -477,15 +468,7 @@ function createTrackType(tatorApi, projectId, videoTypeId) {
         "default": 0.0,
       },
     ]
-  }).then(
-    (createStateTypeResp) => {
-      console.log(createStateTypeResp.message);
-      return createStateTypeResp.id;
-    },
-    (error) => {
-      logAndExit(error);
-    }
-  )
+  }).then(logMessageReturnId, logAndExit);
 }
 
 var tatorApi = getApi(argv.host, argv.token);
@@ -494,13 +477,7 @@ var tatorApi = getApi(argv.host, argv.token);
 tatorApi.createOrganization(
   {"name": argv.name}
 ).then(
-  (data) => {
-    console.log(data.message);
-    return data.id;
-  },
-  (error) => { 
-    logAndExit(error);
-  }
+  logMessageReturnId, logAndExit
 ).then(
   (orgId) => {
     // Create the test project
@@ -510,19 +487,9 @@ tatorApi.createOrganization(
         "summary": 'A test project.',
         "organization": orgId
       }
-    );
+    ).then(logMessageReturnId, logAndExit);
   },
-  (error) => {
-    logAndExit(error);
-  } 
-).then(
-  (project) => {
-    console.log(project.message);
-    return project.id
-  },
-  (error) => {
-    logAndExit(error);
-  } 
+  logAndExit
 ).then(
   (projectId) => {
     tatorApi.getVersionList(projectId).then(
@@ -530,9 +497,7 @@ tatorApi.createOrganization(
         // Get the baseline version
         return versionList[0].id;
       },
-      (error) => {
-        logAndExit(error);
-      }
+      logAndExit
     ).then(
       (baselineVersionId) => {
         // Create another version that is based off the baseline
@@ -547,9 +512,7 @@ tatorApi.createOrganization(
           }
         );
       },
-      (error) => {
-        logAndExit(error);
-      }
+      logAndExit
     );
 
     createMediaTypes(tatorApi, projectId).then(
