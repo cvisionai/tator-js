@@ -8,7 +8,7 @@ js-bindings:
 	./codegen.py tator-openapi-schema.yaml
 	docker run -it --rm \
 		-v $(shell pwd):/pwd \
-		openapitools/openapi-generator-cli:v5.0.0-beta3 \
+		openapitools/openapi-generator-cli:v5.2.1 \
 		generate -c /pwd/config.json \
 		-i /pwd/tator-openapi-schema.yaml \
 		-g javascript -o /pwd/pkg -t /pwd/templates
