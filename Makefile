@@ -18,4 +18,11 @@ js-bindings:
 		chmod -R 777 /pwd/pkg
 	cp -r examples pkg/examples
 	cp -r utils pkg/src/utils
+	cp webpack* pkg/.
 	cd pkg && npm install && npm run build
+	cd pkg && npm install querystring webpack webpack-cli --save-dev
+	cd pkg && npx webpack --config webpack.prod.js
+	mv pkg/dist/tator.min.js pkg/.
+	cd pkg && npx webpack --config webpack.dev.js
+	mv pkg/tator.min.js pkg/dist/.
+
