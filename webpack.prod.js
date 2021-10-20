@@ -5,7 +5,13 @@ module.exports = {
     app: "./src/index.js",
   },
   mode: "production",
+  experiments: {
+    outputModule: true
+  },
   output: {
+    library: {
+      type: "module"
+    },
     filename: "tator.min.js",
     path: path.resolve(__dirname, "dist"),
     clean: true,

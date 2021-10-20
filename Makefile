@@ -19,7 +19,7 @@ js-bindings:
 	cp -r examples pkg/examples
 	cp -r utils pkg/src/utils
 	cp webpack* pkg/.
-	cd pkg && npm install && npm run build
+	cd pkg && npm install
 	cd pkg && npm install querystring webpack webpack-cli --save-dev
 	cd pkg && npx webpack --config webpack.prod.js
 	mv pkg/dist/tator.min.js pkg/.
