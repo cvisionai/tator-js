@@ -12,6 +12,10 @@ js-bindings:
 		generate -c /pwd/config.json \
 		-i /pwd/tator-openapi-schema.yaml \
 		-g javascript -o /pwd/pkg -t /pwd/templates
+	docker run -it --rm \
+		-v $(shell pwd):/pwd \
+		openapitools/openapi-generator-cli:v5.2.1 \
+		chmod -R 777 /pwd/pkg
 	cp -r examples pkg/examples
 	cp -r utils pkg/src/utils
 	cd pkg && npm install && npm run build
