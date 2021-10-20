@@ -1,6 +1,6 @@
 {
   "projectName": "tator",
-  "projectVersion": "0.0.1",
+  "projectVersion": "0.0.2",
   "projectDescription": "JavaScript client for Tator.",
   "licenseName": "MIT",
   "usePromises": true,
