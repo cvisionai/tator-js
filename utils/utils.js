@@ -2,8 +2,11 @@ import ApiClient from '../ApiClient';
 import TatorApi from '../api/TatorApi';
 
 class Utils {
-  static getApi(host='https://www.tatorapp.com', token=null) {
+  static getApi(host=null, token=null) {
     var defaultClient = ApiClient.instance;
+    if (host === null) {
+      host = window.location.origin;
+    }
     if (token) {
       var TokenAuth = defaultClient.authentications['TokenAuth'];
       TokenAuth.apiKey = token;
