@@ -4,7 +4,7 @@ js-bindings:
 	rm -rf pkg
 	mkdir pkg
 	mkdir pkg/src
-	curl -s -L https://www.tatorapp.com/schema > tator-openapi-schema.yaml
+	curl -s -L https://cloud.tator.io/schema > tator-openapi-schema.yaml
 	./codegen.py tator-openapi-schema.yaml
 	docker run -it --rm \
 		-v $(shell pwd):/pwd \

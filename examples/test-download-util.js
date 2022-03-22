@@ -7,7 +7,7 @@ const argv = yargs
     alias: 's',
     description: 'Tator host URL',
     type: 'string',
-    default: 'https://www.tatorapp.com'
+    default: 'https://cloud.tator.io'
   })
   .option('token', {
     alias: 't',
