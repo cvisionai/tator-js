@@ -13,7 +13,12 @@ npm install tator --save
 ```js
 const Tator = require('tator');
 let api = Tator.Utils.getApi('https://cloud.tator.io', TOKEN);
+
+// For ES6 class object output
 api.getMediaList(PROJECT).then(medias => console.log(medias));
+
+// For raw JSON output
+api.getMediaListWithHttpInfo(PROJECT).then(info => console.log(info.response.body));
 ```
 
 ## Building (developers only)
