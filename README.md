@@ -2,7 +2,21 @@
 
 JavaScript client for [Tator](https://github.com/cvisionai/tator).
 
-## Building
+## Installation
+
+```shell
+npm install tator --save
+```
+
+## Usage
+
+```js
+const Tator = require('tator');
+let api = Tator.Utils.getApi('https://cloud.tator.io', TOKEN);
+api.getMediaList(PROJECT).then(medias => console.log(medias));
+```
+
+## Building (developers only)
 
 ```shell
 make js-bindings
@@ -10,7 +24,7 @@ make js-bindings
 
 This will generate code using the schema at https://cloud.tator.io. If you are a tator developer, call `make js-bindings` from the main `tator` project (for which this project is a submodule) and it will use the schema from the local backend image.
 
-## Run examples
+## Run examples (developers only)
 
 ```shell
 cd pkg
