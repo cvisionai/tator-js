@@ -8,7 +8,7 @@ module.exports = {
   experiments: {
     outputModule: true
   },
-  devtool: "inline-source-map",
+  devtool: "eval-source-map",
   devServer: {
     static: "./dist",
   },
