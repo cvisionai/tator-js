@@ -1,6 +1,6 @@
 
 
-uploadMulti(api, project, blob, info, numParts, chunkSize, fileSize, controller, progressCallback) {
+function uploadMulti(api, project, blob, info, numParts, chunkSize, fileSize, controller, progressCallback) {
   const gcpUpload = info.upload_id === info.urls[0];
   let promise = new Promise(resolve => resolve(true));
   for (let idx=0; idx < numParts; idx++) {
@@ -40,7 +40,7 @@ uploadMulti(api, project, blob, info, numParts, chunkSize, fileSize, controller,
 }
 
 // Uploads using a single request.
-uploadSingle(blob, info, numParts, chunkSize, fileSize, controller, progressCallback) {
+function uploadSingle(blob, info, numParts, chunkSize, fileSize, controller, progressCallback) {
   return fetchRetry(info.urls[0], {
     method: "PUT",
     signal: controller.signal,
@@ -112,12 +112,14 @@ async function uploadFile(
   if (numChunks > 1) {
     promise = uploadMulti(
       api, project, blob, info, numParts,
-      chunkSize, fileSize, controller, progressCallback
+      chunkSize, fileSize, controller, progressCallback,
     );
   } else {
     promise = uploadSingle(
       blob, info, numParts, chunkSize, fileSize, controller, progressCallback,
     );
   }
+  return [promise, controller];
 }
 
+export default uploadFile;
