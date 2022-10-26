@@ -34,8 +34,8 @@ function uploadMulti(api, project, blob, info, numParts, chunkSize, fileSize, co
     key: info.key,
     upload_id: info.upload_id,
     parts: parts,
-  })
-  .then(() => {return info.key});
+  }))
+  .then(() => {return info.key;});
   return promise;
 }
 
