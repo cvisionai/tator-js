@@ -3,7 +3,7 @@ import TatorApi from '../api/TatorApi';
 
 function getApi(host=null, token=null) {
   var defaultClient = ApiClient.instance;
-  if (host === null) {
+  if (host === null && typeof window !== 'undefined') {
     host = window.location.origin;
   }
   if (token) {
