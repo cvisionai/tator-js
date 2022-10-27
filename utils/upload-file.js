@@ -1,5 +1,3 @@
-
-
 function uploadMulti(api, project, blob, info, numParts, chunkSize, fileSize, controller, progressCallback) {
   const gcpUpload = info.upload_id === info.urls[0];
   let promise = new Promise(resolve => resolve(true));
@@ -20,7 +18,7 @@ function uploadMulti(api, project, blob, info, numParts, chunkSize, fileSize, co
         "Content-Range": "bytes " + startByte + "-" + lastByte + "/" + fileSize,
       };
     }
-    promise = promise.then(() => {return fetchRetry(info.urls[idx], options);})
+    promise = promise.then(() => {return fetch(info.urls[idx], options);})
     .then(response => {
       parts.push({ETag: response.headers.get("ETag") ? response.headers.get("ETag") : "ETag", PartNumber: idx + 1});
       return parts;
@@ -40,38 +38,36 @@ function uploadMulti(api, project, blob, info, numParts, chunkSize, fileSize, co
 }
 
 // Uploads using a single request.
-function uploadSingle(blob, info, numParts, chunkSize, fileSize, controller, progressCallback) {
-  return fetchRetry(info.urls[0], {
+async function uploadSingle(stream, size, info, controller, progressCallback) {
+  const buffer = new ArrayBuffer(size);
+  const reader = stream.getReader({mode: "byob"});
+  await reader.read(new Uint8Array(buffer));
+  return fetch(info.urls[0], {
     method: "PUT",
     signal: controller.signal,
     credentials: "omit",
-    body: this.file.slice(0, this.file.size),
+    body: buffer,
   })
   .then(() => {
-    progressCallback(100);
+    if (progressCallback !== null) {
+      progressCallback(100);
+    }
     return info.key;
   });
 }
 
-async function uploadFile(
-  api, project, fileOrUrl, mediaId=null,
-  filename=null, chunkSize=1024*1024*10, fileSize=null,
-  fileId=null, progressCallback=null) {
+async function uploadFile(api, project, stream, size, opts={}) {
+  // Get options
+  const mediaId = opts.mediaId || null;
+  const filename = opts.filename || null;
+  const chunkSize = opts.chunkSize || 1024*1024*10;
+  const fileId = opts.fileId || null;
+  const progressCallback = opts.progressCallback || null;
+
   const GCP_CHUNK_MOD = 256 * 1024;
 
-  // Check if this is a file or URL.
-  const isFile = file instanceof File;
-  const isString = typeof fileOrUrl === 'string' || fileOrUrl instanceof String;
-  if (!isFile && !isString) {
-    throw "fileOrUrl must be a File or string!";
-  }
-  
-  // Get number of chunks.
-  if (isFile && (fileSize == null || fileSize <= 0)) {
-    fileSize = fileOrUrl.size;
-  }
-  if (Math.ceil(fileSize / chunkSize) > 10000) {
-    chunkSize = Math.ceil(fileSize / 9000);
+  if (Math.ceil(size / chunkSize) > 10000) {
+    chunkSize = Math.ceil(size / 9000);
     console.warn(`Number of chunks exceeds maximum of 10,000. Increasing chunk size to ${chunkSize}.`);
   }
   if (chunkSize % GCP_CHUNK_MOD) {
@@ -79,13 +75,8 @@ async function uploadFile(
     chunkSize = Math.ceil(chunkSize / GCP_CHUNK_MOD) * GCP_CHUNK_MOD;
   }
 
-  // Drop query portion of URL if given.
-  if (isString && filename != null) {
-    filename = filename.split('?')[0];
-  }
-
   // Get upload info.
-  const numChunks = Math.ceil(fileSize / chunkSize);
+  const numChunks = Math.ceil(size / chunkSize);
   const uploadParams = {numParts: numChunks};
   if (mediaId != null) {
     uploadParams.mediaId = mediaId;
@@ -96,30 +87,22 @@ async function uploadFile(
   if (filename != null) {
     uploadParams.filename = filename;
   }
-  const uploadInfo = await api.getUploadInfo(project, uploadParams);
-
-  // Functor to wrap around file versus URL
-  const getData = async obj => {
-    if (isFile) {
-      return obj;
+  api.getUploadInfo(project, uploadParams)
+  .then(info => {
+    let controller = new AbortController();
+    let promise;
+    if (numChunks > 1) {
+      promise = uploadMulti(
+        api, project, stream, size, info, numChunks,
+        chunkSize, size, controller, progressCallback,
+      );
     } else {
-      return await fetch(obj).then(response => response.blob());
+      promise = uploadSingle(
+        stream, size, info, controller, progressCallback,
+      );
     }
-  };
-
-  let controller = new AbortController();
-  let promise;
-  if (numChunks > 1) {
-    promise = uploadMulti(
-      api, project, blob, info, numParts,
-      chunkSize, fileSize, controller, progressCallback,
-    );
-  } else {
-    promise = uploadSingle(
-      blob, info, numParts, chunkSize, fileSize, controller, progressCallback,
-    );
-  }
-  return [promise, controller];
+    return [promise, controller];
+  });
 }
 
 export default uploadFile;
