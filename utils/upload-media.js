@@ -43,3 +43,4 @@ async function uploadMedia(api, mediaType, file, opts) {
   });
 }
 
+export default uploadMedia;
