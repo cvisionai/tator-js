@@ -1,4 +1,39 @@
-function uploadMulti(api, project, blob, info, numParts, chunkSize, fileSize, controller, progressCallback) {
+import { fetchRetry } from "./fetch-retry.js";
+
+function makeReaderWithFixedChunks(reader, chunkSize) {
+  let buffer;
+  const stream = new ReadableStream({
+    async pull(controller) {
+      let full = false;
+
+      while (!full) {
+        const status = await reader.read();
+
+        if (!status.done) {
+          const chunk = status.value;
+          buffer = new Uint8Array([...(buffer || []), ...chunk]);
+
+          while (buffer.byteLength >= chunkSize) {
+            const chunkToSend = buffer.slice(0, chunkSize);
+            controller.enqueue(chunkToSend);
+            buffer = new Uint8Array([...buffer.slice(chunkSize)]);
+            full = true;
+          }
+        }
+        if (status.done) {
+          full = true;
+          if (buffer.byteLength > 0) {
+            controller.enqueue(buffer);
+          }
+          controller.close();
+        }
+      }
+    },
+  });
+  return stream.getReader();
+}
+
+function uploadMulti(api, project, blob, info, numParts, chunkSize, fileSize, progressCallback) {
   const gcpUpload = info.upload_id === info.urls[0];
   let promise = new Promise(resolve => resolve(true));
   for (let idx=0; idx < numParts; idx++) {
@@ -6,7 +41,6 @@ function uploadMulti(api, project, blob, info, numParts, chunkSize, fileSize, co
     const stopByte = Math.min(startByte + chunkSize, fileSize);
     let options = {
       method: "PUT",
-      signal: controller.signal,
       credentials: "omit",
       body: blob.slice(startByte, stopByte),
     };
@@ -18,7 +52,7 @@ function uploadMulti(api, project, blob, info, numParts, chunkSize, fileSize, co
         "Content-Range": "bytes " + startByte + "-" + lastByte + "/" + fileSize,
       };
     }
-    promise = promise.then(() => {return fetch(info.urls[idx], options);})
+    promise = promise.then(() => {return fetchRetry(info.urls[idx], options);})
     .then(response => {
       parts.push({ETag: response.headers.get("ETag") ? response.headers.get("ETag") : "ETag", PartNumber: idx + 1});
       return parts;
@@ -38,15 +72,14 @@ function uploadMulti(api, project, blob, info, numParts, chunkSize, fileSize, co
 }
 
 // Uploads using a single request.
-async function uploadSingle(stream, size, info, controller, progressCallback) {
-  const buffer = new ArrayBuffer(size);
-  const reader = stream.getReader({mode: "byob"});
-  await reader.read(new Uint8Array(buffer));
-  return fetch(info.urls[0], {
-    method: "PUT",
-    signal: controller.signal,
-    credentials: "omit",
-    body: buffer,
+async function uploadSingle(stream, size, info, progressCallback) {
+  const reader = makeReaderWithFixedChunks(stream.getReader(), size);
+  return reader.read().then(status => {
+    return fetchRetry(info.urls[0], {
+      method: "PUT",
+      credentials: "omit",
+      body: status.value,
+    })
   })
   .then(() => {
     if (progressCallback !== null) {
@@ -87,21 +120,20 @@ async function uploadFile(api, project, stream, size, opts={}) {
   if (filename != null) {
     uploadParams.filename = filename;
   }
-  api.getUploadInfo(project, uploadParams)
+  return api.getUploadInfo(project, uploadParams)
   .then(info => {
-    let controller = new AbortController();
     let promise;
     if (numChunks > 1) {
       promise = uploadMulti(
         api, project, stream, size, info, numChunks,
-        chunkSize, size, controller, progressCallback,
+        chunkSize, size, progressCallback,
       );
     } else {
       promise = uploadSingle(
-        stream, size, info, controller, progressCallback,
+        stream, size, info, progressCallback,
       );
     }
-    return [promise, controller];
+    return promise;
   });
 }
 
