@@ -9,31 +9,32 @@ function md5sum(file) {
   const chunks = 1;
   let currentChunk = 0;
   let spark = new SparkMD5.ArrayBuffer();
-  let reader = new FileReader();
-  reader.onload = (e) => {
-    spark.append(e.target.result);
-    currentChunk++;
-    const percentage = (currentChunk / chunks * 10).toFixed(2);
-    if (currentChunk < chunks) {
-      loadNext();
-    } else {
-      md5 = spark.end();
+  return new Promise((resolve, reject) => {
+    let reader = new FileReader();
+    reader.onload = (e) => {
+      spark.append(e.target.result);
+      currentChunk++;
+      const percentage = (currentChunk / chunks * 10).toFixed(2);
+      if (currentChunk < chunks) {
+        loadNext();
+      } else {
+        md5 = spark.end();
 
-      // Salt in the file size
-      md5 = SparkMD5.hash(md5 + this.file.size);
+        // Salt in the file size
+        md5 = SparkMD5.hash(md5 + file.size);
+        resolve(md5);
+      }
+    };
+    reader.onerror = error => {
+      reject("Error processing MD5");
+    };
+    const loadNext = () => {
+      var start = currentChunk * chunkSize;
+      var end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
+      reader.readAsArrayBuffer(blobSlice.call(file, start, end));
     }
-  };
-  reader.onerror = error => {
-    console.error("Error processing MD5");
-    removeFromActive(this.upload_uid);
-  };
-  const loadNext = () => {
-    var start = currentChunk * chunkSize;
-    var end = ((start + chunkSize) >= this.file.size) ? this.file.size : start + chunkSize;
-    reader.readAsArrayBuffer(blobSlice.call(this.file, start, end));
-  }
-  loadNext();
-  return md5;
+    loadNext();
+  });
 }
 
 export { md5sum };
