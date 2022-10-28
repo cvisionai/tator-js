@@ -27,4 +27,4 @@ function getApi(host=null, token=null) {
   return new TatorApi(defaultClient);
 }
 
-export default getApi;
+export { getApi };

@@ -36,4 +36,4 @@ function md5sum(file) {
   return md5;
 }
 
-export default md5sum;
+export { md5sum };

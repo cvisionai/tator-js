@@ -105,4 +105,4 @@ async function uploadFile(api, project, stream, size, opts={}) {
   });
 }
 
-export default uploadFile;
+export { uploadFile };
