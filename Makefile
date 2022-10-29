@@ -24,6 +24,10 @@ build:
 	cd pkg && npm install
 	cd pkg && npm install -D @playwright/test
 
+.PHONY: copy
+copy:
+	cp utils/* pkg/src/utils/. && cp test/* pkg/test/.
+
 .PHONY: test
 test:
 	cd pkg && npx playwright test test/* --workers=1
