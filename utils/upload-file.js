@@ -33,7 +33,7 @@ function makeReaderWithFixedChunks(reader, chunkSize) {
   return stream.getReader();
 }
 
-function uploadMulti(api, project, stream, size, info, numChunks, chunkSize, progressCallback) {
+function uploadMulti(api, project, stream, size, info, numChunks, chunkSize, progressCallback, abortController) {
   const gcpUpload = info.upload_id === info.urls[0];
   let promise = new Promise(resolve => resolve(true));
   const reader = makeReaderWithFixedChunks(stream.getReader(), chunkSize);
@@ -48,6 +48,7 @@ function uploadMulti(api, project, stream, size, info, numChunks, chunkSize, pro
         method: "PUT",
         credentials: "omit",
         body: status.value,
+        signal: abortController.signal,
       };
       if (gcpUpload) {
         const contentLength = status.value.length;
@@ -81,13 +82,14 @@ function uploadMulti(api, project, stream, size, info, numChunks, chunkSize, pro
 }
 
 // Uploads using a single request.
-async function uploadSingle(stream, size, info, progressCallback) {
+async function uploadSingle(stream, size, info, progressCallback, abortController) {
   const reader = makeReaderWithFixedChunks(stream.getReader(), size);
   return reader.read().then(status => {
     return fetchRetry(info.urls[0], {
       method: "PUT",
       credentials: "omit",
       body: status.value,
+      signal: abortController.signal,
     })
   })
   .then(() => {
@@ -105,6 +107,7 @@ async function uploadFile(api, project, stream, size, opts={}) {
   const chunkSize = opts.chunkSize || 1024*1024*10;
   const fileId = opts.fileId || null;
   const progressCallback = opts.progressCallback || null;
+  const abortController = opts.abortController || new AbortController();
 
   const GCP_CHUNK_MOD = 256 * 1024;
 
@@ -135,11 +138,11 @@ async function uploadFile(api, project, stream, size, opts={}) {
     if (numChunks > 1) {
       promise = uploadMulti(
         api, project, stream, size, info, numChunks,
-        chunkSize, progressCallback,
+        chunkSize, progressCallback, abortController,
       );
     } else {
       promise = uploadSingle(
-        stream, size, info, progressCallback,
+        stream, size, info, progressCallback, abortController,
       );
     }
     return promise;
