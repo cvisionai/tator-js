@@ -102,7 +102,7 @@ async function uploadFile(api, project, stream, size, opts={}) {
   // Get options
   const mediaId = opts.mediaId || null;
   const filename = opts.filename || null;
-  const chunkSize = opts.chunkSize || 1024*1024*1;
+  const chunkSize = opts.chunkSize || 1024*1024*10;
   const fileId = opts.fileId || null;
   const progressCallback = opts.progressCallback || null;
 
