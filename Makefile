@@ -22,7 +22,8 @@ build:
 	rm -rf pkg/test && cp -r test pkg/test
 	cd pkg && npm uninstall mocha
 	cd pkg && npm install
-	cd pkg && npm install -D @playwright/test
+	cd pkg && npm install -D @playwright/test isomorphic-fetch fetch-retry \
+		spark-md5
 
 .PHONY: copy
 copy:
