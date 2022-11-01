@@ -23,7 +23,7 @@ build:
 	cd pkg && npm uninstall mocha
 	cd pkg && npm install
 	cd pkg && npm install -D @playwright/test isomorphic-fetch fetch-retry \
-		spark-md5
+		spark-md5 uuid
 
 .PHONY: copy
 copy:
