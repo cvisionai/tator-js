@@ -664,7 +664,7 @@ function createTrackType(tatorApi, projectId, videoTypeId) {
   }).then(logMessageReturnId, logAndExit);
 }
 
-var tatorApi = Tator.Utils.getApi(argv.host, argv.token);
+var tatorApi = Tator.getApi(argv.host, argv.token);
 
 // Create test organization (reuse project name)
 tatorApi.createOrganization(

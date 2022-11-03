@@ -3,7 +3,10 @@
 import ApiClient from './ApiClient';
 {{#models}}import {{#model}}{{classFilename}}{{/model}} from './{{#modelPackage}}{{modelPackage}}/{{/modelPackage}}{{importPath}}';
 {{/models}}{{#apiInfo}}{{#apis}}import {{importPath}} from './{{#apiPackage}}{{apiPackage}}/{{/apiPackage}}{{importPath}}';
-import Utils from './utils/utils';
+import { getApi } from './utils/get-api.js';
+import { md5sum } from './utils/md5sum.js';
+import { uploadFile } from './utils/upload-file.js';
+import { uploadMedia } from './utils/upload-media.js';
 {{/apis}}{{/apiInfo}}
 
 {{#emitJSDoc}}/**{{#projectDescription}}
@@ -38,7 +41,10 @@ import Utils from './utils/utils';
 * @version {{projectVersion}}
 */{{/emitJSDoc}}
 export {
-    Utils,
+    getApi,
+    md5sum,
+    uploadFile,
+    uploadMedia,
 
     {{=< >=}}
     <#emitJSDoc>/**
