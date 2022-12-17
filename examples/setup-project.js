@@ -190,7 +190,7 @@ function createLocalizationTypes(tatorApi, projectId, imageTypeId, videoTypeId, 
       "description": "A test box type.",
       "dtype": "box",
       "media_types": [imageTypeId, videoTypeId],
-      "colorMap": {
+      "color_map": {
         "default": [255, 0, 0],
         "key": "Test Enum",
         "map": {
@@ -310,7 +310,7 @@ function createLocalizationTypes(tatorApi, projectId, imageTypeId, videoTypeId, 
         "description": "A test dot type.",
         "dtype": "dot",
         "media_types": [imageTypeId, videoTypeId],
-        "colorMap": {
+        "color_map": {
           "default": [255, 0, 0],
           "version": versionColorMap
         },
