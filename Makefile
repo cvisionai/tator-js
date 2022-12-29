@@ -6,15 +6,16 @@ build: tator-openapi-schema.yaml
 	rm -rf pkg
 	mkdir pkg
 	mkdir pkg/src
+	./codegen.py tator-openapi-schema.yaml
 	docker run --rm \
 		-v $(shell pwd):/pwd \
-		openapitools/openapi-generator-cli:v6.2.1 \
+		openapitools/openapi-generator-cli:v6.2.0 \
 		generate -c /pwd/config.json \
 		-i /pwd/tator-openapi-schema.yaml \
 		-g javascript -o /pwd/pkg -t /pwd/templates
 	docker run --rm \
 		-v $(shell pwd):/pwd \
-		openapitools/openapi-generator-cli:v6.2.1 \
+		openapitools/openapi-generator-cli:v6.2.0 \
 		chmod -R 777 /pwd/pkg
 	cp -r examples pkg/examples
 	cp -r utils pkg/src/utils
