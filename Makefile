@@ -24,6 +24,12 @@ build:
 	cd pkg && npm install
 	cd pkg && npm install -D @playwright/test isomorphic-fetch fetch-retry \
 		spark-md5 uuid
+	cd pkg && npm install querystring webpack webpack-cli --save-dev
+	cp webpack* pkg/.
+	cd pkg && npx webpack --config webpack.prod.js
+	mv pkg/dist/tator.min.js pkg/.
+	cd pkg && npx webpack --config webpack.dev.js
+	mv pkg/tator.min.js pkg/dist/.
 
 .PHONY: copy
 copy:
