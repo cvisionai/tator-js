@@ -1,10 +1,11 @@
+tator-openapi-schema.yaml:
+	curl -s -L https://cloud.tator.io/schema > tator-openapi-schema.yaml
+
 .PHONY: build
-build:
-	rm -f tator-openapi-schema.yaml
+build: tator-openapi-schema.yaml
 	rm -rf pkg
 	mkdir pkg
 	mkdir pkg/src
-	curl -s -L https://cloud.tator.io/schema > tator-openapi-schema.yaml
 	docker run --rm \
 		-v $(shell pwd):/pwd \
 		openapitools/openapi-generator-cli:v6.2.1 \
