@@ -5,8 +5,6 @@ import os
 import re
 import requests
 
-SCHEMA_FILENAME = 'schema.yaml'
-
 class NoAliasDumper(yaml.Dumper):
     def ignore_aliases(self, data):
         return True
@@ -36,12 +34,9 @@ def remove_problem_additional_properties(data):
     return data
 
 filepath = sys.argv[1]
-if not os.path.exists(SCHEMA_FILENAME):
-    response = requests.get("https://cloud.tator.io/schema")
-    assert response.status_code == 200
-    with open(SCHEMA_FILENAME, 'wb') as f:
-        f.write(response.content)
-with open(SCHEMA_FILENAME, 'r') as f:
+if not os.path.exists(filepath):
+    raise Exception(f"File {filepath} does not exist!")
+with open(filepath, 'r') as f:
     schema = yaml.load(f, Loader=yaml.FullLoader)
     schema = remove_oneof(schema)
     schema = remove_problem_additional_properties(schema) 

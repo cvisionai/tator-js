@@ -1,8 +1,7 @@
 tator-openapi-schema.yaml:
 	curl -s -L https://cloud.tator.io/schema > tator-openapi-schema.yaml
 
-.PHONY: build
-build: tator-openapi-schema.yaml
+pkg/src/index.js: tator-openapi-schema.yaml
 	rm -rf pkg
 	mkdir pkg
 	mkdir pkg/src
@@ -26,16 +25,19 @@ build: tator-openapi-schema.yaml
 	cd pkg && npm install -D @playwright/test isomorphic-fetch fetch-retry \
 		spark-md5 uuid
 	cd pkg && npm install querystring webpack webpack-cli --save-dev
-	cp webpack* pkg/.
-	cd pkg && npx webpack --config webpack.prod.js
-	mv pkg/dist/tator.min.js pkg/.
+
+pkg/dist/tator.js: pkg/src/index.js
+	cp webpack.dev.js pkg/.
 	cd pkg && npx webpack --config webpack.dev.js
-	mv pkg/tator.min.js pkg/dist/.
 
-.PHONY: copy
-copy:
-	cp utils/* pkg/src/utils/. && cp test/* pkg/test/.
+pkg/dist/tator.min.js: pkg/src/index.js
+	cp webpack.prod.js pkg/.
+	cd pkg && npx webpack --config webpack.prod.js
 
-.PHONY: test
-test:
-	cd pkg && npx playwright test test/* --workers=1
+.PHONY: all
+all: pkg/dist/tator.js pkg/dist/tator.min.js
+
+.PHONY: clean
+clean:
+	rm -rf pkg
+	rm -f tator-openapi-schema.yaml

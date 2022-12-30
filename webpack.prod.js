@@ -14,6 +14,6 @@ module.exports = {
     },
     filename: "tator.min.js",
     path: path.resolve(__dirname, "dist"),
-    clean: true,
-	},
+    clean: false,
+  },
 }
