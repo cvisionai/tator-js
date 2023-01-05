@@ -1,20 +1,20 @@
-.PHONY: build
-build:
-	rm -f tator-openapi-schema.yaml
+tator-openapi-schema.yaml:
+	curl -s -L https://cloud.tator.io/schema > tator-openapi-schema.yaml
+
+pkg/src/index.js: tator-openapi-schema.yaml
 	rm -rf pkg
 	mkdir pkg
 	mkdir pkg/src
-	curl -s -L https://cloud.tator.io/schema > tator-openapi-schema.yaml
 	./codegen.py tator-openapi-schema.yaml
 	docker run --rm \
 		-v $(shell pwd):/pwd \
-		openapitools/openapi-generator-cli:v6.2.0 \
+		openapitools/openapi-generator-cli:v6.1.0 \
 		generate -c /pwd/config.json \
 		-i /pwd/tator-openapi-schema.yaml \
 		-g javascript -o /pwd/pkg -t /pwd/templates
 	docker run --rm \
 		-v $(shell pwd):/pwd \
-		openapitools/openapi-generator-cli:v6.2.0 \
+		openapitools/openapi-generator-cli:v6.1.0 \
 		chmod -R 777 /pwd/pkg
 	cp -r examples pkg/examples
 	cp -r utils pkg/src/utils
@@ -24,11 +24,20 @@ build:
 	cd pkg && npm install
 	cd pkg && npm install -D @playwright/test isomorphic-fetch fetch-retry \
 		spark-md5 uuid
+	cd pkg && npm install querystring webpack webpack-cli --save-dev
 
-.PHONY: copy
-copy:
-	cp utils/* pkg/src/utils/. && cp test/* pkg/test/.
+pkg/dist/tator.js: pkg/src/index.js
+	cp webpack.dev.js pkg/.
+	cd pkg && npx webpack --config webpack.dev.js
 
-.PHONY: test
-test:
-	cd pkg && npx playwright test test/* --workers=1
+pkg/dist/tator.min.js: pkg/src/index.js
+	cp webpack.prod.js pkg/.
+	cd pkg && npx webpack --config webpack.prod.js
+
+.PHONY: all
+all: pkg/dist/tator.js pkg/dist/tator.min.js
+
+.PHONY: clean
+clean:
+	rm -rf pkg
+	rm -f tator-openapi-schema.yaml
