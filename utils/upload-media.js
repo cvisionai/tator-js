@@ -41,7 +41,7 @@ async function uploadMedia(api, mediaType, file, opts) {
     if (file.type.startsWith('video')) {
       return api.transcode(projectId, spec);
     } else {
-      return api.createMedia(projectId, [spec]);
+      return api.createMediaList(projectId, [spec]);
     }
   });
 }
