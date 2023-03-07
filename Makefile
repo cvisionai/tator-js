@@ -16,9 +16,9 @@ pkg/src/index.js: tator-openapi-schema.yaml templates/index.mustache
 		-v $(shell pwd):/pwd \
 		openapitools/openapi-generator-cli:v6.1.0 \
 		chmod -R 777 /pwd/pkg
-	cp -r examples pkg/examples
-	cp -r utils pkg/src/utils
-	cp -r annotator pkg/src/annotator
+	cp -r src/examples pkg/examples
+	cp -r src/utils pkg/src/utils
+	cp -r src/annotator pkg/src/annotator
 	cp README.md pkg/.
 	rm -rf pkg/test && cp -r test pkg/test
 	cd pkg && npm uninstall mocha
@@ -35,12 +35,12 @@ pkg/src/index.js: tator-openapi-schema.yaml templates/index.mustache
 												underwater-image-color-correction@1.0.3\
 												--save-dev
 
-pkg/dist/tator.js: pkg/src/index.js $(shell find annotator -name "*.js") $(shell find utils -name "*.js")
-	cp webpack.dev.js pkg/.
+pkg/dist/tator.js: pkg/src/index.js $(shell find src/ -name "*.js")
+	cp src/webpack.dev.js pkg/.
 	cd pkg && npx webpack --config webpack.dev.js
 
-pkg/dist/tator.min.js: pkg/src/index.js $(shell find annotator -name "*.js") $(shell find utils -name "*.js")
-	cp webpack.prod.js pkg/.
+pkg/dist/tator.min.js: pkg/src/index.js $(shell find src/ -name "*.js")
+	cp src/webpack.prod.js pkg/.
 	cd pkg && npx webpack --config webpack.prod.js
 
 .PHONY: all
