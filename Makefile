@@ -25,7 +25,15 @@ pkg/src/index.js: tator-openapi-schema.yaml templates/index.mustache
 	cd pkg && npm install
 	cd pkg && npm install -D @playwright/test isomorphic-fetch fetch-retry \
 		spark-md5 uuid
-	cd pkg && npm install querystring webpack webpack-cli --save-dev
+	# Add dependencies for 
+	cd pkg && npm install querystring \
+	                      webpack \
+												webpack-cli@^5.0.1 \
+												libtess@1.2.0 \
+                        hls.js@1.2.3 \
+												mp4box@0.4.9 \
+												underwater-image-color-correction@1.0.3\
+												--save-dev
 
 pkg/dist/tator.js: pkg/src/index.js $(shell find annotator -name "*.js") $(shell find utils -name "*.js")
 	cp webpack.dev.js pkg/.
