@@ -13,8 +13,10 @@ module.exports = {
     static: "./dist",
   },
   output: {
-    libraryTarget: 'umd',
-    filename: "tator.umd.js",
+    library: {
+      type: "module"
+    },
+    filename: "tator.js",
     path: path.resolve(__dirname, "dist"),
     clean: false,
   },
