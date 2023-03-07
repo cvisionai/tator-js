@@ -5,4 +5,7 @@ if [ -z package.json ]; then
 fi
 npm install express
 
-cp -v ../../pkg/dist/tator.js .
+echo "Copying the development copy of tator.js, one could use npm here, potentially"
+cp -v ../../pkg/dist/tator.js public
+
+echo "Now run `node app.js` and the example is running at port 3000" 
