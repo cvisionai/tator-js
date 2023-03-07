@@ -1,7 +1,7 @@
 tator-openapi-schema.yaml:
 	curl -s -L https://cloud.tator.io/schema > tator-openapi-schema.yaml
 
-pkg/src/index.js: tator-openapi-schema.yaml templates/index.mustache
+pkg/src/index.js: tator-openapi-schema.yaml $(shell find templates -name "*.mustache")
 	rm -rf pkg
 	mkdir pkg
 	mkdir pkg/src
