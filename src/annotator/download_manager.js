@@ -1,6 +1,3 @@
-
-import {guiFPS} from "./video.js";
-
 // Manages the interactions to a download worker for a single video
 // Companion class to VideoCanvas in video.js
 export class DownloadManager
@@ -217,7 +214,6 @@ export class DownloadManager
         this._parent._videoVersion = msg.data["version"];
         console.info(`Video buf${buf_idx} has start bias of ${this._startBias.get(buf_idx)} - buffer: ${this._parent._scrub_idx}`);
         console.info("Setting hi performance mode");
-        guiFPS = 60;
       }
     }
     else if (type == "error")

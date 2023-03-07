@@ -89,7 +89,7 @@ import { TatorSimpleVideo } from "./video-simple.js";
 
 // Constrain the video display FPS to not allow dropped frames during playback
 //
-export var guiFPS = 30;
+export var guiFPS = 60;
 
 var Direction = { BACKWARDS:-1, STOPPED: 0, FORWARD: 1};
 var State = {PLAYING: 0, IDLE: 1, LOADING: -1};
