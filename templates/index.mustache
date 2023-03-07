@@ -7,6 +7,10 @@ import { getApi } from './utils/get-api.js';
 import { md5sum } from './utils/md5sum.js';
 import { uploadFile } from './utils/upload-file.js';
 import { uploadMedia } from './utils/upload-media.js';
+import { VideoCanvas } from './annotator/video.js';
+import { RATE_CUTOFF_FOR_ON_DEMAND } from './annotator/video.js';
+import { ImageCanvas } from './annotator/image.js';
+import { MultiRenderer } from './annotator/multi-renderer.js';
 {{/apis}}{{/apiInfo}}
 
 {{#emitJSDoc}}/**{{#projectDescription}}
@@ -45,6 +49,10 @@ export {
     md5sum,
     uploadFile,
     uploadMedia,
+    VideoCanvas,
+    ImageCanvas,
+    MultiRenderer,
+    RATE_CUTOFF_FOR_ON_DEMAND,
 
     {{=< >=}}
     <#emitJSDoc>/**

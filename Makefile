@@ -18,6 +18,7 @@ pkg/src/index.js: tator-openapi-schema.yaml
 		chmod -R 777 /pwd/pkg
 	cp -r examples pkg/examples
 	cp -r utils pkg/src/utils
+	cp -r annotator pkg/src/annotator
 	cp README.md pkg/.
 	rm -rf pkg/test && cp -r test pkg/test
 	cd pkg && npm uninstall mocha
