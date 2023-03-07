@@ -30,7 +30,10 @@ def remove_problem_additional_properties(data):
     ]
     schemas = data['components']['schemas']
     for key in blocklist:
-        del schemas[key]['additionalProperties']
+        try:
+            del schemas[key]['additionalProperties']
+        except Exception as exp:
+            print(f"Unable to delete key again {exp}")
     return data
 
 filepath = sys.argv[1]
