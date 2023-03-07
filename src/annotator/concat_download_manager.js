@@ -19,7 +19,7 @@ export class ConcatDownloadManager
       const timestampOffset = insertion_detail[idx].timestampOffset;
       const webWorkerName = `MEDIA_${media_objects[idx].id}_TS_${timestampOffset}`;
       let this_worker = new Worker(new URL("./vid_downloader.js", import.meta.url),
-                                   {'name': webWorkerName});
+                                   {'name': webWorkerName, 'type': 'module'});
       this._fps = media_objects[0].fps;
 
       // Dispatch the worker with the right timestamp offset

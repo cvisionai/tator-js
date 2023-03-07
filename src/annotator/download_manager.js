@@ -10,7 +10,7 @@ export class DownloadManager
   {
     this._parent = parent;
     this._worker = new Worker(new URL("./vid_downloader.js", import.meta.url),
-    {'name': 'Video Download Worker'});
+    {'name': 'Video Download Worker', 'type': 'module'});
     this._worker.onmessage = this._onMessage.bind(this);
     this._startBias = new Map();
   }

@@ -126,7 +126,7 @@ class TatorVideoManager {
 
     // TODO: This worker is really an mp4 demuxer, should rename
     this._codec_worker = new Worker(new URL("./video-codec-worker.js", import.meta.url),
-                                    {'name': `${name} Worker`});
+                                    {'name': `${name} Worker`, 'type': 'module'});
     this._codec_worker.onmessage = this._on_message.bind(this);
 
     this._codec_worker.postMessage({"type": "init", "name": this._name});

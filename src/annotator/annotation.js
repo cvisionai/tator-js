@@ -946,43 +946,46 @@ export class AnnotationCanvas extends HTMLElement
 
     this._shortcutsDisabled = false;
 
-    // Context menu (right-click): Tracks
-    this._contextMenuTrack = document.createElement("canvas-context-menu");
-    this._contextMenuTrack.style.zIndex = 2;
-    this._contextMenuTrack.hideMenu();
-    this._shadow.appendChild(this._contextMenuTrack);
-    this._contextMenuTrack.addMenuEntry("Set as main track", this.contextMenuCallback.bind(this));
-    this._contextMenuTrack.addMenuEntry("Trim start to here", this.contextMenuCallback.bind(this));
-    this._contextMenuTrack.addMenuEntry("Trim end to here", this.contextMenuCallback.bind(this));
-    this._contextMenuTrack.addMenuEntry("Extend track", this.contextMenuCallback.bind(this));
-    this._contextMenuTrack.addMenuEntry("Fill track gaps", this.contextMenuCallback.bind(this));
-    this._contextMenuTrack.addMenuEntry("Merge into main track", this.contextMenuCallback.bind(this));
-    this._contextMenuTrack.disableEntry("Merge into main track", true, "Need to set main track first");
-    this._selectedMergeTrack = null;
-    this._algoLaunchOptions = [];
-    this._appletLaunchOptions = [];
-    this._menuAppletShortcuts = {
-      "ALT+1": null,
-      "ALT+2": null,
-      "ALT+3": null
-    };
+    // Delay initialization of canvas context menu until after the element has been defined
+    customElements.whenDefined("canvas-context-menu").then(() => {
+      // Context menu (right-click): Tracks
+      this._contextMenuTrack = document.createElement("canvas-context-menu");
+      this._contextMenuTrack.style.zIndex = 2;
+      this._contextMenuTrack.hideMenu();
+      this._shadow.appendChild(this._contextMenuTrack);
+      this._contextMenuTrack.addMenuEntry("Set as main track", this.contextMenuCallback.bind(this));
+      this._contextMenuTrack.addMenuEntry("Trim start to here", this.contextMenuCallback.bind(this));
+      this._contextMenuTrack.addMenuEntry("Trim end to here", this.contextMenuCallback.bind(this));
+      this._contextMenuTrack.addMenuEntry("Extend track", this.contextMenuCallback.bind(this));
+      this._contextMenuTrack.addMenuEntry("Fill track gaps", this.contextMenuCallback.bind(this));
+      this._contextMenuTrack.addMenuEntry("Merge into main track", this.contextMenuCallback.bind(this));
+      this._contextMenuTrack.disableEntry("Merge into main track", true, "Need to set main track first");
+      this._selectedMergeTrack = null;
+      this._algoLaunchOptions = [];
+      this._appletLaunchOptions = [];
+      this._menuAppletShortcuts = {
+        "ALT+1": null,
+        "ALT+2": null,
+        "ALT+3": null
+      };
 
-    // Don't display the fill track gaps option until it has been verified the algorithm has been registered.
-    this._contextMenuTrack.displayEntry("Fill track gaps", false);
+      // Don't display the fill track gaps option until it has been verified the algorithm has been registered.
+      this._contextMenuTrack.displayEntry("Fill track gaps", false);
 
-    // Context menu (right-click): Localizations/detections
-    this._contextMenuLoc = document.createElement("canvas-context-menu");
-    this._contextMenuLoc.hideMenu();
-    this._shadow.appendChild(this._contextMenuLoc);
-    this._contextMenuLoc.addMenuEntry("Add to main track", this.contextMenuCallback.bind(this));
-    this._contextMenuLoc.disableEntry("Add to main track", true, "Need to set main track first");
-    this._createNewTrackMenuEntries = [];
+      // Context menu (right-click): Localizations/detections
+      this._contextMenuLoc = document.createElement("canvas-context-menu");
+      this._contextMenuLoc.hideMenu();
+      this._shadow.appendChild(this._contextMenuLoc);
+      this._contextMenuLoc.addMenuEntry("Add to main track", this.contextMenuCallback.bind(this));
+      this._contextMenuLoc.disableEntry("Add to main track", true, "Need to set main track first");
+      this._createNewTrackMenuEntries = [];
 
-    // Context menu (right-click): Nothing selected
-    this._contextMenuNone = document.createElement("canvas-context-menu");
-    this._contextMenuNone.hideMenu();
-    this._shadow.appendChild(this._contextMenuNone);
-    this._createNewStateFrameMenuEntries = [];
+      // Context menu (right-click): Nothing selected
+      this._contextMenuNone = document.createElement("canvas-context-menu");
+      this._contextMenuNone.hideMenu();
+      this._shadow.appendChild(this._contextMenuNone);
+      this._createNewStateFrameMenuEntries = [];
+    });
 
     this._contextMenuFrame = 0;
 
@@ -1028,15 +1031,18 @@ export class AnnotationCanvas extends HTMLElement
 
     this._errorTextId = this._textOverlay.addText(0.5,0.5,"",{'fontSize': '14pt',color: 'red'});
 
-
-    this._delConfirm = document.createElement("entity-delete-confirm");
-    this._shadow.appendChild(this._delConfirm);
-
-    this._delConfirm.addEventListener("confirmDelete", () => {
-      this.deleteLocalization(this.activeLocalization);
-      this.activeLocalization=null;
-      this._mouseMode == MouseMode.QUERY;
+    customElements.whenDefined("entity-delete-confirm", () => {
+      this._delConfirm = document.createElement("entity-delete-confirm");
+      this._delConfirm.addEventListener("confirmDelete", () => {
+        this.deleteLocalization(this.activeLocalization);
+        this.activeLocalization=null;
+        this._mouseMode == MouseMode.QUERY;
+      });
+      this._shadow.appendChild(this._delConfirm);
     });
+
+
+
 
     try {
       this._offscreen = new OffscreenCanvas(100, 100);

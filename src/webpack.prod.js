@@ -9,10 +9,8 @@ module.exports = {
     outputModule: true
   },
   output: {
-    library: {
-      type: "module"
-    },
-    filename: "tator.min.js",
+    libraryTarget: 'umd',
+    filename: "tator.umd.min.js",
     path: path.resolve(__dirname, "dist"),
     clean: false,
   },
