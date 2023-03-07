@@ -1,7 +1,7 @@
 tator-openapi-schema.yaml:
 	curl -s -L https://cloud.tator.io/schema > tator-openapi-schema.yaml
 
-pkg/src/index.js: tator-openapi-schema.yaml
+pkg/src/index.js: tator-openapi-schema.yaml templates/index.mustache
 	rm -rf pkg
 	mkdir pkg
 	mkdir pkg/src
@@ -27,11 +27,11 @@ pkg/src/index.js: tator-openapi-schema.yaml
 		spark-md5 uuid
 	cd pkg && npm install querystring webpack webpack-cli --save-dev
 
-pkg/dist/tator.js: pkg/src/index.js
+pkg/dist/tator.js: pkg/src/index.js $(shell find annotator -name "*.js") $(shell find utils -name "*.js")
 	cp webpack.dev.js pkg/.
 	cd pkg && npx webpack --config webpack.dev.js
 
-pkg/dist/tator.min.js: pkg/src/index.js
+pkg/dist/tator.min.js: pkg/src/index.js $(shell find annotator -name "*.js") $(shell find utils -name "*.js")
 	cp webpack.prod.js pkg/.
 	cd pkg && npx webpack --config webpack.prod.js
 
