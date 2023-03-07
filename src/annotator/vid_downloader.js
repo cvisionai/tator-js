@@ -1,6 +1,6 @@
-import { fetchRetry } from "../utils/fetch-retry.js";
+//import { fetchRetry } from "../utils/fetch-retry-worker.js";
 
-export class VideoDownloader
+class VideoDownloader
 {
   constructor(media_files, blockSize, offsite_config, frameJump, infoOnly)
   {
@@ -124,7 +124,7 @@ export class VideoDownloader
     {
       let info_url = this._media_files[buf_idx].segment_info;
       const info = new Request(info_url, {headers:this._headers});
-      init_promises.push(fetchRetry(info));
+      init_promises.push(fetch(info));
     }
     Promise.all(init_promises).then((responses) => {
       for (let buf_idx = 0; buf_idx < responses.length; buf_idx++)
@@ -566,7 +566,7 @@ export class VideoDownloader
     let headers = {'range':`bytes=${startByte}-${startByte+downloadSize}`,
                    ...self._headers};
 
-    fetchRetry(this._media_files[mediaFileIndex].path,
+    fetch(this._media_files[mediaFileIndex].path,
           {headers: headers}
          ).then(
           (response) =>
@@ -678,7 +678,7 @@ export class VideoDownloader
 
     let headers = {'range':`bytes=${startByte}-${startByte+offset-1}`,
                    ...self._headers};
-    fetchRetry(this._media_files[buf_idx].path,
+    fetch(this._media_files[buf_idx].path,
           {headers: headers}
          ).then(
            function(response)
@@ -771,7 +771,7 @@ export class VideoDownloader
     let headers = {'range':`bytes=${startByte}-${startByte+currentSize-1}`,
                    ...self._headers};
     var that = this;
-    fetchRetry(this._media_files[buf_idx].path,
+    fetch(this._media_files[buf_idx].path,
           {headers: headers}
          ).then(
            (response) =>
