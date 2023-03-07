@@ -2,8 +2,8 @@
     <head>
         <title>Video Player Example</title>
 
-        <script type="module">
-        import {VideoCanvas} from './tator.js';
+        <script src="tator.js" type="module"></script>
+        <script>
 
          // TODO need to change the interface to right click a bit to avoid this dependency
          // on a tbd defined custom element
@@ -67,7 +67,7 @@
                  for (const dataType of types) {
                      this._dataTypes[dataType.id] = dataType;
                  }
-                 this._trackDb={}; //No Tracks, TODO: fix-me
+                 this._trackDb=new Map(); //No Tracks, TODO: fix-me
              }
          }
          customElements.define("data-stub", DataStub);
@@ -224,6 +224,7 @@
              {
                  // Configurables
                  let host = null;
+                 let token = null;
 
                  let params = new URLSearchParams(document.location.search);
                  let media_id = null;
@@ -248,13 +249,24 @@
                  }
                  else
                  {
-                     host = window.prompt("Host?","https://local.tator.io")
+                     host = window.prompt("Host?","http://local.tator.io")
                      const new_url = document.location.href + '&host=' +
                                      host;
                      history.replaceState(null, null, new_url);
                  }
 
-                let token = window.prompt("Token?",1)
+                 // If not in query prompt user
+                 if (params.has("token") == true)
+                 {
+                     token = params.get("token");
+                 }
+                 else
+                 {
+                     token = window.prompt("Token?","")
+                     const new_url = document.location.href + '&token=' +
+                                     host;
+                     history.replaceState(null, null, new_url);
+                 }
 
                  /////////////////////////////////
                  // Example offsite config
