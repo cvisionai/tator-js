@@ -3,7 +3,6 @@ import { fetchRetry } from "../utils/fetch-retry.js";
 import { DrawGL } from "./drawGL.js";
 import { color } from "./drawGL_colors.js";
 import { Utilities } from "../utils/utilities.js";
-//import { handle_video_error } from "../annotation/annotation-common.js";
 const getColorFilterMatrix = require('underwater-image-color-correction');
 
 
@@ -1052,8 +1051,7 @@ export class AnnotationCanvas extends HTMLElement
       this._offscreenDraw = new DrawGL(this._offscreen);
     } catch {
       let evt = { detail : {hasOffScreenCanvas : false}}
-      // TODO: replace with event
-      //handle_video_error(evt, this._shadow);
+      this.dispatchEvent(new CustomEvent("videoError", evt))
       console.warn("No offscreen canvas capability.");
     }
   }
