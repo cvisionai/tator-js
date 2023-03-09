@@ -10,7 +10,10 @@ export class ImageCanvas extends AnnotationCanvas
   {
     super();
     this._imageElement=document.createElement("img");
-    this._imageElement.crossOrigin = "anonymous";
+    this._imageElement.setAttribute("crossOrigin","");
+    // Anonymous CORs request omits the origin header to the server
+    // s3 when not using a presigned URL won't respond with CORs headers if origin header is not present
+    // See: https://docs.aws.amazon.com/AmazonS3/latest/userguide/cors-troubleshooting.html - clause 2.a
     this._good=false;
     this._supportsAvif=false;
 
