@@ -922,7 +922,8 @@ export class AnnotationCanvas extends HTMLElement
     super();
     this._shadow = this.attachShadow({mode: "open"});
     this._canvas=document.createElement("canvas");
-    this._canvas.setAttribute("class", "video");
+    this._canvas.style.width = "100%";
+    this._canvas.background = "black";
     this._canvas.setAttribute("height", "1");
     this._canvas.style.zIndex = -1;
     this._shadow.appendChild(this._canvas);
@@ -1505,7 +1506,8 @@ export class AnnotationCanvas extends HTMLElement
     // Remove the old one
     this._shadow.removeChild(this._canvas);
     this._canvas=document.createElement("canvas");
-    this._canvas.setAttribute("class", "video");
+    this._canvas.style.width = "100%";
+    this._canvas.background = "black";
     this._canvas.style.zIndex = -1;
     this._shadow.appendChild(this._canvas);
 
