@@ -2174,17 +2174,17 @@ export class VideoCanvas extends AnnotationCanvas {
   }
 
   //Calculate the appropriate appendThreshold
-  _calculateAppendThreshold()
+  _calculateAppendThreshold(currentTime, endTime)
   {
     // FPS swag accounts for low frame rate videos that get sped up to 15x on playback
     // @TODO: These would be great to pull from user settings or project settings
     if (this._direction == Direction.STOPPED)
     {
-      return 240; // 2 minutes when paused
+      return Math.min(240, endTime-currentTime); // 2 minutes when paused
     }
     else
     {
-      return 480; // 4 Minutes whilst playing.
+      return Math.min(480, endTime-currentTime); // 4 Minutes whilst playing.
     }
   }
 
@@ -2521,8 +2521,9 @@ export class VideoCanvas extends AnnotationCanvas {
       else
       {
         const currentTime = this.frameToTime(this._dispFrame, this._play_idx);
+        const endTime = this.frameToTime(this._numFrames, this._play_idx);
         // Make these scale to the selected playback rate
-        const appendThreshold = this._calculateAppendThreshold();
+        const appendThreshold = this._calculateAppendThreshold(currentTime, endTime);
         var playbackReadyThreshold = this._calculateReadyThreshold();
         const totalVideoTime = this.frameToTime(this._numFrames, this._play_idx);
         if (this._direction == Direction.FORWARD &&
