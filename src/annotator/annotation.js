@@ -1845,6 +1845,16 @@ export class AnnotationCanvas extends HTMLElement
       return;
     }
 
+    // Handle sensitive keyboard shortcuts only when mouseover is active
+    if (this._mouseMode == MouseMode.SELECT && this._mouseOverActive == true)
+    {
+      if (event.code == 'Delete' && this._determineCanEdit(this.activeLocalization))
+      {
+        this._delConfirm.objectName = this.getObjectDescription(this.activeLocalization).name;
+        this._delConfirm.confirm()
+      }
+    }
+
     if (event.ctrlKey && event.code == "Digit9")
     {
       this._effectManager.grayscale();
@@ -2544,6 +2554,7 @@ export class AnnotationCanvas extends HTMLElement
 
   mouseOutHandler(mouseEvent)
   {
+    this._mouseOverActive = false;
     let needRefresh = false;
     this._textOverlay.classList.remove("select-pointer");
     this._textOverlay.toggleTextDisplay(this._coordinateOverlayIdx,false);
@@ -2564,6 +2575,7 @@ export class AnnotationCanvas extends HTMLElement
 
   mouseOverHandler(mouseEvent)
   {
+    this._mouseOverActive = true;
     if (this._playing)
     {
       return;
