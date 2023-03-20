@@ -1034,7 +1034,7 @@ export class AnnotationCanvas extends HTMLElement
 
     this._errorTextId = this._textOverlay.addText(0.5,0.5,"",{'fontSize': '14pt',color: 'red'});
 
-    customElements.whenDefined("entity-delete-confirm", () => {
+    customElements.whenDefined("entity-delete-confirm").then(() => {
       this._delConfirm = document.createElement("entity-delete-confirm");
       this._delConfirm.addEventListener("confirmDelete", () => {
         this.deleteLocalization(this.activeLocalization);
