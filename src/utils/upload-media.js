@@ -38,7 +38,9 @@ async function uploadMedia(api, mediaType, file, opts) {
       size: file.size,
     };
     // Initiate transcode or save image.
-    if (file.type.startsWith('video')) {
+    const ext = filename.split('.').pop();
+    const isVideo = ext.match(/(mp4|avi|3gp|ogg|wmv|webm|flv|mkv|mov|mts|m4v|mpg|mp2|mpeg|mpe|mpv|m4p|qt|swf|avchd)$/i);
+    if (isVideo) {
       return api.transcode(projectId, spec);
     } else {
       return api.createMediaList(projectId, [spec]);
