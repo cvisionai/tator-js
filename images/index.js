@@ -1,0 +1,11 @@
+export * from "./alert-circle.svg";
+export * from "./README.md";
+export * from "./live-thumb.png";
+export * from "./loading.svg";
+export * from "./tator-logo-symbol-only.png";
+export * from "./tator_loading.gif";
+export * from "./tator-logo.png";
+export * from "./please_stand_by.jpg";
+export * from "./computer.jpg";
+export * from "./spinner-transparent.svg";
+export * as Svg from "./svg/index.js";
