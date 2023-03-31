@@ -1851,7 +1851,7 @@ export class AnnotationCanvas extends HTMLElement
       if (event.code == 'Delete' && this._determineCanEdit(this.activeLocalization))
       {
         this.dispatchEvent(new CustomEvent("delete", 
-        {detail: {'Localization': this.activeLocalization}, composed:true}));
+        {detail: {'localization': this.activeLocalization}, composed:true}));
       }
     }
 
