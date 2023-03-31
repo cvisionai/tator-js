@@ -459,8 +459,8 @@ function polyToBox(poly)
 }
 
 // All special cursor types, useful for clearing the deck
-var cursorTypes=['vertical-resize',
-                 'horizontal-resize',
+var cursorTypes=['ns-resize',
+                 'ew-resize',
                  'ne-resize',
                  'se-resize',
                  'nw-resize',
@@ -641,28 +641,28 @@ function determineBoxResizeType(mouseLocation,
       switch(idx)
       {
         case 0:
-        resizeType="vertical-resize";
+        resizeType="ns-resize";
         impactVector=[[0,1],
                       [0,1],
                       [0,0],
                       [0,0]];
         break;
         case 1:
-        resizeType="horizontal-resize";
+        resizeType="ew-resize";
         impactVector=[[0,0],
                       [1,0],
                       [1,0],
                       [0,0]];
         break;
         case 2:
-        resizeType="vertical-resize";
+        resizeType="ns-resize";
         impactVector=[[0,0],
                       [0,0],
                       [0,1],
                       [0,1]];
         break;
         case 3:
-        resizeType="horizontal-resize";
+        resizeType="ew-resize";
         impactVector=[[1,0],
                       [0,0],
                       [0,0],
@@ -1850,8 +1850,8 @@ export class AnnotationCanvas extends HTMLElement
     {
       if (event.code == 'Delete' && this._determineCanEdit(this.activeLocalization))
       {
-        this._delConfirm.objectName = this.getObjectDescription(this.activeLocalization).name;
-        this._delConfirm.confirm()
+        this.dispatchEvent(new CustomEvent("delete", 
+        {detail: {'Localization': this.activeLocalization}, composed:true}));
       }
     }
 
@@ -2604,7 +2604,8 @@ export class AnnotationCanvas extends HTMLElement
           return;
         }
         if(localization != this.activeLocalization) {
-          this._textOverlay.classList.add("select-pointer");
+          this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': 'pointer'}, composed:true}));
           this.emphasizeLocalization(localization);
         }
       }
@@ -2615,7 +2616,8 @@ export class AnnotationCanvas extends HTMLElement
 
         if (this._emphasis != null && this._emphasis != this.activeLocalization)
         {
-          this._textOverlay.classList.remove("select-pointer");
+          this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': null}, composed:true}));
           this._emphasis = null;
           this.refresh();
         }
@@ -2634,7 +2636,9 @@ export class AnnotationCanvas extends HTMLElement
       }
       else if (resizeType)
       {
-        this._textOverlay.classList.add("select-"+resizeType[0]);
+        
+        this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': resizeType[0]}, composed:true}));
         this._impactVector = resizeType[1];
         this.refresh();
       }
@@ -2646,24 +2650,28 @@ export class AnnotationCanvas extends HTMLElement
           // If we tripped in during a select, don't override the pointer
           if (mouseEvent.buttons == 0)
           {
-            this._textOverlay.classList.add("select-grab");
+            this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': 'grab'}, composed:true}));
           }
           else
           {
-            this._textOverlay.classList.add("select-grabbing");
+            this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': 'grabbing'}, composed:true}));
           }
           this.emphasizeLocalization(localization);
         }
         else if (localization)
         {
           // User moved off localization
-          this._textOverlay.classList.add("select-pointer");
+          this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': 'pointer'}, composed:true}));
           this.emphasizeLocalization(localization);
         }
         else
         {
           // User moved off localization
-          this._textOverlay.classList.remove("select-pointer");
+          this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': null}, composed:true}));
           if (this._emphasis != null)
           {
             this._emphasis = null;
@@ -2674,13 +2682,15 @@ export class AnnotationCanvas extends HTMLElement
     }
     if (this._mouseMode == MouseMode.ZOOM_ROI)
     {
-      this._textOverlay.classList.add("select-zoom-roi");
+      this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': 'zoom-in'}, composed:true}));
     }
 
     if (this._mouseMode == MouseMode.NEW_POLY)
     {
       cursorTypes.forEach((t) => {that._textOverlay.classList.remove("select-"+t);});
-      this._textOverlay.classList.add("select-crosshair");
+      this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': 'crosshair'}, composed:true}));
       this._polyMaker.onMouseOver(location);
     }
     if (this._overrideState == MouseMode.NEW_POLY)
@@ -2691,7 +2701,8 @@ export class AnnotationCanvas extends HTMLElement
     if (this._mouseMode == MouseMode.NEW)
     {
       cursorTypes.forEach((t) => {this._textOverlay.classList.remove("select-"+t);});
-      this._textOverlay.classList.add("select-crosshair");
+      this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': 'crosshair'}, composed:true}));
       let over_threshold = () => {
         return (performance.now()-this._lastHoverDraw) > (1000.0/30);
       };
@@ -2863,7 +2874,8 @@ export class AnnotationCanvas extends HTMLElement
       {
         this._mouseMode = MouseMode.RESIZE;
         this._impactVector=resizeType[1];
-        this._textOverlay.classList.add("select-"+resizeType[0]);
+        this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': resizeType[0]}, composed:true}));
       }
       else if (localization == this.activeLocalization && this._determineCanEdit(localization))
       {
