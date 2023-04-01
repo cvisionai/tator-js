@@ -860,11 +860,17 @@ export class TextOverlay extends HTMLElement {
     this.toggleTextDisplay(idx, display);
   }
 
-  clearAll()
+  clearAll(group)
   {
-    for (let text of this._texts)
+    for (let idx = 0; idx < this._texts.length; idx++)
     {
-      this._shadow.removeChild(text.element);
+      let text = this._texts[idx];
+      if (text.element.group == group)
+      {
+        this._shadow.removeChild(text.element);
+        this._texts.splice(idx, 1);
+        idx--;
+      }
     }
     this._enabledTexts = [];
   }
@@ -873,7 +879,7 @@ export class TextOverlay extends HTMLElement {
   // Default style is 24pt bold, style can be patched
   // via the userStyle object argument
   // Ex: {'fontSize': '36pt',color: 'red'} // bold red
-  addText(x,y, content, userStyle)
+  addText(x,y, content, userStyle, group)
   {
     let div = document.createElement("div");
     div.style.userSelect = "none";
@@ -900,6 +906,7 @@ export class TextOverlay extends HTMLElement {
       div.style[key] = style[key];
     }
     div.textContent = content;
+    div.group = group;
     this._shadow.appendChild(div);
     this._setPosition(x,y,div);
     this._texts.push({element: div,x:x,y:y});
