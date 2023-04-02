@@ -12,6 +12,7 @@ async function uploadMedia(api, mediaType, file, opts) {
   const gid = opts.gid || uuidv1();
   const section = opts.section || "New Files";
   const attributes = opts.attributes || {};
+  const emailSpec = opts.emailSpec || {};
   let md5 = opts.md5 || md5sum(file);
 
   const projectId = mediaType.project;
@@ -34,13 +35,14 @@ async function uploadMedia(api, mediaType, file, opts) {
       section: section,
       md5: md5,
       attributes: attributes,
-      mediaId: mediaId,
+      media_id: mediaId,
       size: file.size,
     };
     // Initiate transcode or save image.
     const ext = filename.split('.').pop();
     const isVideo = ext.match(/(mp4|avi|3gp|ogg|wmv|webm|flv|mkv|mov|mts|m4v|mpg|mp2|mpeg|mpe|mpv|m4p|qt|swf|avchd)$/i);
     if (isVideo) {
+      spec.email_spec = emailSpec;
       return api.transcode(projectId, spec);
     } else {
       return api.createMediaList(projectId, [spec]);
