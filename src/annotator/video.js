@@ -658,7 +658,7 @@ export class VideoCanvas extends AnnotationCanvas {
     else
     {
       largest_height = videoObject.height;
-      largest_width = vidoObject.width;
+      largest_width = videoObject.width;
     }
 
     if (play_idx == -1)
