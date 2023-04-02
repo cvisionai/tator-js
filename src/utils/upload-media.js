@@ -12,7 +12,7 @@ async function uploadMedia(api, mediaType, file, opts) {
   const gid = opts.gid || uuidv1();
   const section = opts.section || "New Files";
   const attributes = opts.attributes || {};
-  const emailSpec = opts.emailSpec || {};
+  const emailSpec = opts.emailSpec || null;
   let md5 = opts.md5 || md5sum(file);
 
   const projectId = mediaType.project;
