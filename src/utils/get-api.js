@@ -1,15 +1,21 @@
 import ApiClient from '../ApiClient';
 import TatorApi from '../api/TatorApi';
+import { getApiProxy } from './api-proxy.js';
 
 function getApi(host=null, token=null) {
-  var defaultClient = ApiClient.instance;
+  let defaultClient = ApiClient.instance;
+  let accessToken = localStorage.getItem('access_token');
   if (host === null && typeof window !== 'undefined') {
     host = window.location.origin;
   }
   if (token) {
-    var TokenAuth = defaultClient.authentications['TokenAuth'];
+    let TokenAuth = defaultClient.authentications['TokenAuth'];
     TokenAuth.apiKey = token;
     TokenAuth.apiKeyPrefix = "Token";
+  } else if (accessToken !== null) {
+    let TokenAuth = defaultClient.authentications['TokenAuth'];
+    TokenAuth.apiKey = accessToken;
+    TokenAuth.apiKeyPrefix = "Bearer";
   } else {
     let SessionAuth = defaultClient.authentications['SessionAuth'];
     let value = "; " + document.cookie;
@@ -24,7 +30,8 @@ function getApi(host=null, token=null) {
     SessionAuth.apiKey = value;
   }
   defaultClient.basePath = host;
-  return new TatorApi(defaultClient);
+  const api = new TatorApi(defaultClient);
+  return getApiProxy(api);
 }
 
 export { getApi };
