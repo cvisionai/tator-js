@@ -22,7 +22,7 @@ async function getOrRefreshAccessToken() {
         })
         .catch((error) => {
           console.error(`Error refreshing token! ${error}`);
-          window.location.href = "/accounts/login";
+          window.location.href = `/accounts/login&state=${window.location.pathname}`;
         });
         localStorage.setItem("access_token", data.access_token);
         localStorage.setItem("expires_in", data.expires_in);
