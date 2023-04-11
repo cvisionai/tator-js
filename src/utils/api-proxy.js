@@ -14,7 +14,7 @@ async function getOrRefreshAccessToken() {
       const deltaMilliseconds = currentTime.getTime() - issueTime.getTime();
       const deltaSeconds = Math.floor(deltaMilliseconds / 1000);
       if (deltaSeconds > (expiresIn - 30)) {
-        const data = await fetch('/refresh')
+        const data = await fetch('/refresh', {credentials: "same-origin"})
         .then((response) => {
           if (!response.ok) {
             throw new Error("Refresh failed!");
@@ -22,7 +22,7 @@ async function getOrRefreshAccessToken() {
           return response.json();
         })
         .catch((error) => {
-          console.error("Error refreshing token!");
+          console.error(`Error refreshing token! ${error}`);
           window.location.href = "/accounts/login";
         });
         localStorage.setItem("access_token", data.access_token);
