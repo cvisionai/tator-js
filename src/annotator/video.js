@@ -1,8 +1,7 @@
 import { AnnotationCanvas } from "./annotation.js";
 import { DownloadManager } from "./download_manager.js"
 import { TatorVideoDecoder} from "./video-codec.js";
-import { fetchRetry } from "../utils/fetch-retry.js";
-import { getCookie } from "../utils/get-cookie.js";
+import { fetchCredentials } from "../utils/fetch-credentials.js";
 import { PeriodicTaskProfiler } from "./periodic_task_profiler";
 import { MotionComp } from "./motion_comp";
 import { ConcatDownloadManager } from "./concat_download_manager.js";
@@ -741,15 +740,10 @@ export class VideoCanvas extends AnnotationCanvas {
         ids.push(videoObject.media_files.concat[idx].id);
       }
       return new Promise((resolve, reject) => {
-      fetchRetry(`/rest/Medias/${videoObject.project}`,
-                 {method: "PUT",
-                 credentials: "same-origin",
-                 headers: {
-                   "X-CSRFToken": getCookie("csrftoken"),
-                   "Accept": "application/json",
-                   "Content-Type": "application/json"},
+      fetchCredentials(`/rest/Medias/${videoObject.project}`, {
+                 method: "PUT",
                  body: JSON.stringify({"ids": ids, 'presigned': 86400}),
-                  }).then(response => response.json())
+                  }, true).then(response => response.json())
                     .then(json => {
                       console.info(json)
                       this._children = json;

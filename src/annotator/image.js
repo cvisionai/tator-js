@@ -1,6 +1,5 @@
 import { AnnotationCanvas } from "./annotation.js";
-import { getCookie } from "../utils/get-cookie.js";
-import { fetchRetry } from "../utils/fetch-retry.js";
+import { fetchCredentials } from "../utils/fetch-credentials.js";
 
 var State = {PLAYING: 0, IDLE: 1, LOADING: -1};
 
@@ -86,16 +85,14 @@ export class ImageCanvas extends AnnotationCanvas
 
       if (Number.isInteger(this._videoFrame)) {
         // Assume it's a video file. Get the appropriate frame and display that.
-        fetchRetry(`/rest/GetFrame/${val.id}?frames=${this._videoFrame}&quality=${display_size}`, {
-          method: "GET",
+        fetchCredentials(`/rest/GetFrame/${val.id}?frames=${this._videoFrame}&quality=${display_size}`, {
           mode: "cors",
           credentials: "include",
           headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "image/*",
             "Accept": "image/*",
-            "Content-Type": "image/*"
           }
-        })
+        }, true, true)
         .then(response => response.blob())
         .then(imageBlob => {
 

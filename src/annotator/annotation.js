@@ -1,5 +1,5 @@
 import { hasPermission } from "../utils/has-permission.js";
-import { fetchRetry } from "../utils/fetch-retry.js";
+import { fetchCredentials } from "../utils/fetch-credentials.js";
 import { DrawGL } from "./drawGL.js";
 import { color } from "./drawGL_colors.js";
 import { Utilities } from "../utils/utilities.js";
@@ -3638,13 +3638,12 @@ export class AnnotationCanvas extends HTMLElement
       this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
                                        {composed: true,
                                         detail: {enabled: true}}));
-      fetchRetry(`/rest/Localization/${localization.id}`,
-                 {method: "DELETE",
-                  ...this._undo._headers()}).then(() => {
-                    this.updateType(objDescription,() => {
-                      this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
-                                       {composed: true,
-                                        detail: {enabled: false}}));
+      fetchCredentials(`/rest/Localization/${localization.id}`, {method: "DELETE"}, true)
+                       .then(() => {
+                       this.updateType(objDescription,() => {
+                         this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
+                                            {composed: true,
+                                             detail: {enabled: false}}));
                       this.refresh();
                     });
 
@@ -3766,9 +3765,8 @@ export class AnnotationCanvas extends HTMLElement
                                        {composed: true,
                                         detail: {enabled: true}}));
     let request_obj = {method: "POST",
-                       ...this._undo._headers(),
                        body: JSON.stringify([newObject])};
-    fetchRetry(`/rest/Localizations/${localization.project}`, request_obj).then(() => {
+    fetchCredentials(`/rest/Localizations/${localization.project}`, request_obj, true).then(() => {
       this.updateType(objDescription,() => {
         // Find the localization we just made and select it
         let localizations = this._framedData.get(newObject.frame).get(original_meta);
