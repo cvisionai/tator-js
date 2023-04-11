@@ -27,9 +27,8 @@ async function keycloakCredentials() {
 async function fetchCredentials(url, opts={}, retry=false, credsOnly=false) {
 
   // Get credentials
-  const keycloakEnabled = localStorage.getItem("keycloak_enabled");
   let credentials;
-  if (keycloakEnabled == 'true') {
+  if (KEYCLOAK_ENABLED) {
     credentials = await keycloakCredentials();
   } else {
     credentials = djangoCredentials();
@@ -38,7 +37,7 @@ async function fetchCredentials(url, opts={}, retry=false, credsOnly=false) {
   // Merge options
   let newOpts;
   if (credsOnly) {
-    credKey = keycloakEnabled == 'true' ? 'Authorization' : 'X-CSRFToken';
+    credKey = KEYCLOAK_ENABLED ? 'Authorization' : 'X-CSRFToken';
     newOpts = opts;
     newOpts.headers[credKey] = credentials[credKey];
   } else {

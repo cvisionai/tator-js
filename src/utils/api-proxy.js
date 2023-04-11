@@ -1,7 +1,6 @@
 async function getOrRefreshAccessToken() {
-  const keycloakEnabled = localStorage.getItem("keycloak_enabled");
   let accessToken = null;
-  if (keycloakEnabled) {
+  if (KEYCLOAK_ENABLED) {
     // Check to see if we are using a JWT
     accessToken = localStorage.getItem("access_token");
     let issueTime = localStorage.getItem("issue_time");
