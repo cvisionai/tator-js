@@ -4,7 +4,6 @@ import { getApiProxy } from './api-proxy.js';
 
 function getApi(host=null, token=null) {
   let defaultClient = ApiClient.instance;
-  let accessToken = localStorage.getItem('access_token');
   if (host === null && typeof window !== 'undefined') {
     host = window.location.origin;
   }
@@ -12,7 +11,8 @@ function getApi(host=null, token=null) {
     let TokenAuth = defaultClient.authentications['TokenAuth'];
     TokenAuth.apiKey = token;
     TokenAuth.apiKeyPrefix = "Token";
-  } else if (accessToken !== null) {
+  } else if (KEYCLOAK_ENABLED) {
+    let accessToken = localStorage.getItem('access_token');
     let TokenAuth = defaultClient.authentications['TokenAuth'];
     TokenAuth.apiKey = accessToken;
     TokenAuth.apiKeyPrefix = "Bearer";
