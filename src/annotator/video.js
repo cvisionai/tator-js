@@ -174,7 +174,6 @@ export class VideoCanvas extends AnnotationCanvas {
       seekQuality: null
     };
 
-    this._addVideoDiagnosticOverlay();
     this._ftypInfo = {};
     this._disableAutoDownloads = false;
 
@@ -255,22 +254,29 @@ export class VideoCanvas extends AnnotationCanvas {
         enableDisplay = true;
       }
 
-      this._textOverlay.modifyText(
-        this._videoDiagOverlay,
-        {content: textContent,
-         style: {
-           "whiteSpace": "pre-line",
-           "fontSize": "10pt",
-           "fontWeight": "bold",
-           "color": "white",
-           "background": "rgba(0,0,0,0.33)"}},
-        enableDisplay);
+      if (enableDisplay)
+      {
+        if (this._videoDiagOverlay == undefined)
+        { 
+          this._videoDiagOverlay = this._textOverlay.addText(0.5, 0.5, null, "video-diagnostics");
+        }
+        this._textOverlay.modifyText(
+          this._videoDiagOverlay,
+          {content: textContent,
+           style: {
+             "whiteSpace": "pre-line",
+             "fontSize": "10pt",
+             "fontWeight": "bold",
+             "color": "white",
+             "background": "rgba(0,0,0,0.33)"}},
+          enableDisplay);
+      }
+      else if (this._videoDiagOverlay)
+      {
+        this._textOverlay.clearAll("video-diagnostics");
+        this._videoDiagOverlay = null;
+      }
     }
-  }
-
-  _addVideoDiagnosticOverlay() {
-    this._videoDiagOverlay = this._textOverlay.addText(0.5, 0.5, "");
-    this._textOverlay.toggleTextDisplay(this._videoDiagOverlay, false);
   }
 
   playBufferDuration() {
