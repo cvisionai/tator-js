@@ -37,7 +37,7 @@ async function fetchCredentials(url, opts={}, retry=false, credsOnly=false) {
   // Merge options
   let newOpts;
   if (credsOnly) {
-    credKey = KEYCLOAK_ENABLED ? 'Authorization' : 'X-CSRFToken';
+    const credKey = KEYCLOAK_ENABLED ? 'Authorization' : 'X-CSRFToken';
     newOpts = opts;
     newOpts.headers[credKey] = credentials[credKey];
   } else {
