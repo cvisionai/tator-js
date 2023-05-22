@@ -39,7 +39,7 @@ async function fetchCredentials(url, opts={}, retry=false, credsOnly=false) {
   if (credsOnly) {
     const credKey = KEYCLOAK_ENABLED ? 'Authorization' : 'X-CSRFToken';
     newOpts = opts;
-    newOpts.headers[credKey] = credentials[credKey];
+    newOpts.headers[credKey] = credentials.headers[credKey];
   } else {
     newOpts = {...credentials, ...opts};
   }
