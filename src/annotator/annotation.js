@@ -810,10 +810,10 @@ export class TextOverlay extends HTMLElement {
   // Set the position of a div object
   _setPosition(x,y,div)
   {
-    div.style.marginLeft =
-      `${Math.round(x*this.clientWidth)-div.clientWidth/2}px`;
-    div.style.marginTop =
-      `${Math.round(y*this.clientHeight)-div.clientHeight/2}px`;
+    div.style.left =
+      `${Math.round(x*this.clientWidth)}px`;
+    div.style.top =
+      `${Math.round(y*this.clientHeight)}px`;
   }
 
   modifyText(idx,delta,display)
