@@ -301,6 +301,14 @@ export class CanvasDrag
     return this._active;
   }
 
+  get pageLeft() {
+    return this._canvas.getBoundingClientRect().left + document.documentElement.scrollLeft; 
+  }
+
+  get pageTop() {
+    return this._canvas.getBoundingClientRect().top + document.documentElement.scrollTop;
+  }
+
   onMouseDown(event)
   {
     this._event={start : {}, current: {}}
@@ -323,9 +331,9 @@ export class CanvasDrag
     this._active = true;
     var now = Date.now();
     var scale = this._scaleFn();
-    var x = Math.min((event.pageX-this._canvas.offsetLeft),
+    var x = Math.min((event.pageX-this.pageLeft),
                      this._canvas.offsetWidth)*scale[0]
-    var y = Math.min((event.pageY-this._canvas.offsetTop),
+    var y = Math.min((event.pageY-this.pageTop),
                      this._canvas.offsetHeight)*scale[1];
     x = Math.round(Math.max(x,0));
     y = Math.round(Math.max(y,0));
@@ -373,8 +381,8 @@ export class CanvasDrag
       if (event.path[0] == this._canvas)
       {
 
-        this._event.end.x = (event.pageX-this._canvas.offsetLeft)*scale[0];
-        this._event.end.y = (event.pageY-this._canvas.offsetTop)*scale[1];
+        this._event.end.x = (event.pageX-this.pageLeft)*scale[0];
+        this._event.end.y = (event.pageY-this.pageTop)*scale[1];
       }
     }
     this._event.end.time = Date.now();
@@ -1062,6 +1070,14 @@ export class AnnotationCanvas extends HTMLElement
       this.dispatchEvent(new CustomEvent("videoError", evt))
       console.warn("No offscreen canvas capability.");
     }
+  }
+
+  get pageLeft() {
+    return this._canvas.getBoundingClientRect().left + document.documentElement.scrollLeft; 
+  }
+
+  get pageTop() {
+    return this._canvas.getBoundingClientRect().top + document.documentElement.scrollTop;
   }
 
   get contextMenuNone() {
