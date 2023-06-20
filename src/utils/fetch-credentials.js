@@ -28,6 +28,15 @@ async function fetchCredentials(url, opts={}, retry=false, credsOnly=false) {
 
   // Get credentials
   let credentials;
+  if (window.self !== window.top) {
+    // In an iframe
+    if (typeof KEYCLOAK_ENABLED === "undefined") {
+      window.KEYCLOAK_ENABLED = parent.KEYCLOAK_ENABLED;
+    }
+    if (typeof BACKEND === "undefined") {
+      window.BACKEND = parent.BACKEND;
+    }
+  }
   if (KEYCLOAK_ENABLED) {
     credentials = await keycloakCredentials();
   } else {
