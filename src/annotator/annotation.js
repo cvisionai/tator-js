@@ -2581,7 +2581,7 @@ export class AnnotationCanvas extends HTMLElement
     let needRefresh = false;
     this._textOverlay.classList.remove("select-pointer");
     this._textOverlay.toggleTextDisplay(this._coordinateOverlayIdx,false);
-    if (this._emphasis != null && this._emphasis != this.activeLocalization)
+    if (this._emphasis != null && this._emphasis.id != this.activeLocalization.id)
     {
       this._emphasis = null;
       needRefresh = true;
@@ -2626,7 +2626,7 @@ export class AnnotationCanvas extends HTMLElement
           this._textOverlay.classList.add("select-not-allowed");
           return;
         }
-        if(localization != this.activeLocalization) {
+        if(localization.id != this.activeLocalization?.id) {
           this.dispatchEvent(new CustomEvent("styleChange", 
               {detail: {'cursor': 'pointer'}, composed:true}));
           this.emphasizeLocalization(localization);
@@ -2637,7 +2637,7 @@ export class AnnotationCanvas extends HTMLElement
         // This is a mouse out event. User has moved outside a localization.
         // If there is an active localization (i.e. a selected one), then select that one
 
-        if (this._emphasis != null && this._emphasis != this.activeLocalization)
+        if (this._emphasis != null && this._emphasis.id != this.activeLocalization?.id)
         {
           this.dispatchEvent(new CustomEvent("styleChange", 
               {detail: {'cursor': null}, composed:true}));
@@ -2668,7 +2668,7 @@ export class AnnotationCanvas extends HTMLElement
       else
       {
         // Check to see if we are nearby are in the localization
-        if (localization && this.activeLocalization && localization.id == this.activeLocalization.id)
+        if (localization && this.activeLocalization && localization.id == this.activeLocalization?.id)
         {
           // If we tripped in during a select, don't override the pointer
           if (mouseEvent.buttons == 0)
@@ -4628,7 +4628,7 @@ export class AnnotationCanvas extends HTMLElement
         this.activeLocalization = null;
         this._mouseMode = MouseMode.QUERY;
       } else {
-        this.emphasizeLocalization(this.activeLocalization);
+        //this.emphasizeLocalization(this.activeLocalization);
         //this.selectLocalization(this.activeLocalization);
       }
     }
