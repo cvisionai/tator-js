@@ -301,6 +301,14 @@ export class CanvasDrag
     return this._active;
   }
 
+  get pageLeft() {
+    return this._canvas.getBoundingClientRect().left + document.documentElement.scrollLeft; 
+  }
+
+  get pageTop() {
+    return this._canvas.getBoundingClientRect().top + document.documentElement.scrollTop;
+  }
+
   onMouseDown(event)
   {
     this._event={start : {}, current: {}}
@@ -323,9 +331,9 @@ export class CanvasDrag
     this._active = true;
     var now = Date.now();
     var scale = this._scaleFn();
-    var x = Math.min((event.pageX-this._canvas.offsetLeft),
+    var x = Math.min((event.pageX-this.pageLeft),
                      this._canvas.offsetWidth)*scale[0]
-    var y = Math.min((event.pageY-this._canvas.offsetTop),
+    var y = Math.min((event.pageY-this.pageTop),
                      this._canvas.offsetHeight)*scale[1];
     x = Math.round(Math.max(x,0));
     y = Math.round(Math.max(y,0));
@@ -373,8 +381,8 @@ export class CanvasDrag
       if (event.path[0] == this._canvas)
       {
 
-        this._event.end.x = (event.pageX-this._canvas.offsetLeft)*scale[0];
-        this._event.end.y = (event.pageY-this._canvas.offsetTop)*scale[1];
+        this._event.end.x = (event.pageX-this.pageLeft)*scale[0];
+        this._event.end.y = (event.pageY-this.pageTop)*scale[1];
       }
     }
     this._event.end.time = Date.now();
@@ -459,8 +467,8 @@ function polyToBox(poly)
 }
 
 // All special cursor types, useful for clearing the deck
-var cursorTypes=['vertical-resize',
-                 'horizontal-resize',
+var cursorTypes=['ns-resize',
+                 'ew-resize',
                  'ne-resize',
                  'se-resize',
                  'nw-resize',
@@ -641,28 +649,28 @@ function determineBoxResizeType(mouseLocation,
       switch(idx)
       {
         case 0:
-        resizeType="vertical-resize";
+        resizeType="ns-resize";
         impactVector=[[0,1],
                       [0,1],
                       [0,0],
                       [0,0]];
         break;
         case 1:
-        resizeType="horizontal-resize";
+        resizeType="ew-resize";
         impactVector=[[0,0],
                       [1,0],
                       [1,0],
                       [0,0]];
         break;
         case 2:
-        resizeType="vertical-resize";
+        resizeType="ns-resize";
         impactVector=[[0,0],
                       [0,0],
                       [0,1],
                       [0,1]];
         break;
         case 3:
-        resizeType="horizontal-resize";
+        resizeType="ew-resize";
         impactVector=[[1,0],
                       [0,0],
                       [0,0],
@@ -810,10 +818,10 @@ export class TextOverlay extends HTMLElement {
   // Set the position of a div object
   _setPosition(x,y,div)
   {
-    div.style.marginLeft =
-      `${Math.round(x*this.clientWidth)-div.clientWidth/2}px`;
-    div.style.marginTop =
-      `${Math.round(y*this.clientHeight)-div.clientHeight/2}px`;
+    div.style.left =
+      `${Math.round(x*this.clientWidth)}px`;
+    div.style.top =
+      `${Math.round(y*this.clientHeight)}px`;
   }
 
   modifyText(idx,delta,display)
@@ -860,11 +868,17 @@ export class TextOverlay extends HTMLElement {
     this.toggleTextDisplay(idx, display);
   }
 
-  clearAll()
+  clearAll(group)
   {
-    for (let text of this._texts)
+    for (let idx = 0; idx < this._texts.length; idx++)
     {
-      this._shadow.removeChild(text.element);
+      let text = this._texts[idx];
+      if (text.element.group == group)
+      {
+        this._shadow.removeChild(text.element);
+        this._texts.splice(idx, 1);
+        idx--;
+      }
     }
     this._enabledTexts = [];
   }
@@ -873,7 +887,7 @@ export class TextOverlay extends HTMLElement {
   // Default style is 24pt bold, style can be patched
   // via the userStyle object argument
   // Ex: {'fontSize': '36pt',color: 'red'} // bold red
-  addText(x,y, content, userStyle)
+  addText(x,y, content, userStyle, group)
   {
     let div = document.createElement("div");
     div.style.userSelect = "none";
@@ -900,6 +914,7 @@ export class TextOverlay extends HTMLElement {
       div.style[key] = style[key];
     }
     div.textContent = content;
+    div.group = group;
     this._shadow.appendChild(div);
     this._setPosition(x,y,div);
     this._texts.push({element: div,x:x,y:y});
@@ -1055,6 +1070,14 @@ export class AnnotationCanvas extends HTMLElement
       this.dispatchEvent(new CustomEvent("videoError", evt))
       console.warn("No offscreen canvas capability.");
     }
+  }
+
+  get pageLeft() {
+    return this._canvas.getBoundingClientRect().left + document.documentElement.scrollLeft; 
+  }
+
+  get pageTop() {
+    return this._canvas.getBoundingClientRect().top + document.documentElement.scrollTop;
   }
 
   get contextMenuNone() {
@@ -1850,8 +1873,8 @@ export class AnnotationCanvas extends HTMLElement
     {
       if (event.code == 'Delete' && this._determineCanEdit(this.activeLocalization))
       {
-        this._delConfirm.objectName = this.getObjectDescription(this.activeLocalization).name;
-        this._delConfirm.confirm()
+        this.dispatchEvent(new CustomEvent("delete", 
+        {detail: {'localization': this.activeLocalization}, composed:true}));
       }
     }
 
@@ -2604,7 +2627,8 @@ export class AnnotationCanvas extends HTMLElement
           return;
         }
         if(localization != this.activeLocalization) {
-          this._textOverlay.classList.add("select-pointer");
+          this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': 'pointer'}, composed:true}));
           this.emphasizeLocalization(localization);
         }
       }
@@ -2615,7 +2639,8 @@ export class AnnotationCanvas extends HTMLElement
 
         if (this._emphasis != null && this._emphasis != this.activeLocalization)
         {
-          this._textOverlay.classList.remove("select-pointer");
+          this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': null}, composed:true}));
           this._emphasis = null;
           this.refresh();
         }
@@ -2634,7 +2659,9 @@ export class AnnotationCanvas extends HTMLElement
       }
       else if (resizeType)
       {
-        this._textOverlay.classList.add("select-"+resizeType[0]);
+        
+        this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': resizeType[0]}, composed:true}));
         this._impactVector = resizeType[1];
         this.refresh();
       }
@@ -2646,24 +2673,28 @@ export class AnnotationCanvas extends HTMLElement
           // If we tripped in during a select, don't override the pointer
           if (mouseEvent.buttons == 0)
           {
-            this._textOverlay.classList.add("select-grab");
+            this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': 'grab'}, composed:true}));
           }
           else
           {
-            this._textOverlay.classList.add("select-grabbing");
+            this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': 'grabbing'}, composed:true}));
           }
           this.emphasizeLocalization(localization);
         }
         else if (localization)
         {
           // User moved off localization
-          this._textOverlay.classList.add("select-pointer");
+          this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': 'pointer'}, composed:true}));
           this.emphasizeLocalization(localization);
         }
         else
         {
           // User moved off localization
-          this._textOverlay.classList.remove("select-pointer");
+          this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': null}, composed:true}));
           if (this._emphasis != null)
           {
             this._emphasis = null;
@@ -2674,13 +2705,15 @@ export class AnnotationCanvas extends HTMLElement
     }
     if (this._mouseMode == MouseMode.ZOOM_ROI)
     {
-      this._textOverlay.classList.add("select-zoom-roi");
+      this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': 'zoom-in'}, composed:true}));
     }
 
     if (this._mouseMode == MouseMode.NEW_POLY)
     {
       cursorTypes.forEach((t) => {that._textOverlay.classList.remove("select-"+t);});
-      this._textOverlay.classList.add("select-crosshair");
+      this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': 'crosshair'}, composed:true}));
       this._polyMaker.onMouseOver(location);
     }
     if (this._overrideState == MouseMode.NEW_POLY)
@@ -2691,7 +2724,8 @@ export class AnnotationCanvas extends HTMLElement
     if (this._mouseMode == MouseMode.NEW)
     {
       cursorTypes.forEach((t) => {this._textOverlay.classList.remove("select-"+t);});
-      this._textOverlay.classList.add("select-crosshair");
+      this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': 'crosshair'}, composed:true}));
       let over_threshold = () => {
         return (performance.now()-this._lastHoverDraw) > (1000.0/30);
       };
@@ -2863,7 +2897,8 @@ export class AnnotationCanvas extends HTMLElement
       {
         this._mouseMode = MouseMode.RESIZE;
         this._impactVector=resizeType[1];
-        this._textOverlay.classList.add("select-"+resizeType[0]);
+        this.dispatchEvent(new CustomEvent("styleChange", 
+              {detail: {'cursor': resizeType[0]}, composed:true}));
       }
       else if (localization == this.activeLocalization && this._determineCanEdit(localization))
       {
