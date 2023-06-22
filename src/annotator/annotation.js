@@ -2581,7 +2581,7 @@ export class AnnotationCanvas extends HTMLElement
     let needRefresh = false;
     this._textOverlay.classList.remove("select-pointer");
     this._textOverlay.toggleTextDisplay(this._coordinateOverlayIdx,false);
-    if (this._emphasis != null && this._emphasis.id != this.activeLocalization.id)
+    if (this._emphasis != null && this._emphasis.id != this.activeLocalization?.id)
     {
       this._emphasis = null;
       needRefresh = true;
@@ -2653,7 +2653,7 @@ export class AnnotationCanvas extends HTMLElement
 
       var localization = this.localizationByLocation(location);
       if ((resizeType && this._clipboard.isCutting(this.activeLocalization)) ||
-          this._clipboard.isCutting(localization) && localization.id == this.activeLocalization.id) {
+          this._clipboard.isCutting(localization) && localization.id == this.activeLocalization?.id) {
         this._textOverlay.classList.add("select-not-allowed");
         this.emphasizeLocalization(this.activeLocalization);
       }
