@@ -1626,13 +1626,23 @@ export class VideoCanvas extends AnnotationCanvas {
 
   advanceOneSecond(forceSeekBuffer)
   {
-    let newFrame = this._dispFrame + this._fps;
+    let newFrame = this._dispFrame + Math.round(this._fps);
     return this.gotoFrame(newFrame, forceSeekBuffer);
   }
 
   backwardOneSecond(forceSeekBuffer)
   {
-    let newFrame = this._dispFrame - this._fps;
+    let newFrame = this._dispFrame - Math.round(this._fps);
+    return this.gotoFrame(newFrame, forceSeekBuffer);
+  }
+
+  advanceOneMinute(forceSeekBuffer) {
+    let newFrame = this._dispFrame + 60 * Math.round(this._fps);
+    return this.gotoFrame(newFrame, forceSeekBuffer);
+  }
+
+  backwardOneMinute(forceSeekBuffer) {
+    let newFrame = this._dispFrame - 60 * Math.round(this._fps);
     return this.gotoFrame(newFrame, forceSeekBuffer);
   }
 

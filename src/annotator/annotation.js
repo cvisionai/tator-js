@@ -1977,6 +1977,10 @@ export class AnnotationCanvas extends HTMLElement
       {
         this.advanceOneSecond(true);
       }
+      else if (event.ctrlKey == true)
+      {
+        this.advanceOneMinute(true);
+      }
       else
       {
         this.gotoFrame(this.currentFrame() + amount, true);
@@ -1990,6 +1994,10 @@ export class AnnotationCanvas extends HTMLElement
       if (event.shiftKey == true)
       {
         this.backwardOneSecond(true);
+      }
+      else if (event.ctrlKey == true)
+      {
+        this.backwardOneMinute(true);
       }
       else
       {
