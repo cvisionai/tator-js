@@ -302,7 +302,7 @@ export class CanvasDrag
   }
 
   get pageLeft() {
-    return this._canvas.getBoundingClientRect().left + document.documentElement.scrollLeft; 
+    return this._canvas.getBoundingClientRect().left + document.documentElement.scrollLeft;
   }
 
   get pageTop() {
@@ -1073,7 +1073,7 @@ export class AnnotationCanvas extends HTMLElement
   }
 
   get pageLeft() {
-    return this._canvas.getBoundingClientRect().left + document.documentElement.scrollLeft; 
+    return this._canvas.getBoundingClientRect().left + document.documentElement.scrollLeft;
   }
 
   get pageTop() {
@@ -1475,7 +1475,7 @@ export class AnnotationCanvas extends HTMLElement
     }
 
     const dragInfo = {};
-    var poly = [[0,0],[0,0],[0,0],[0,0]];
+    var poly = [[0,0],[0,0],[this._canvas.width,this._canvas.height],[0,0]];
     if (this.activeLocalization)
     {
       poly = this.localizationToPoly(this.activeLocalization)
@@ -1488,6 +1488,25 @@ export class AnnotationCanvas extends HTMLElement
 
     if (createNewTrack)
     {
+      var x0 = dragInfo.start.x;
+      var y0 = dragInfo.start.y;
+      var x1 = dragInfo.end.x;
+      var y1 = dragInfo.start.y;
+      var x2 = dragInfo.end.x;
+      var y2 = dragInfo.end.y;
+      var x3 = dragInfo.start.x;
+      var y3 = dragInfo.end.y;
+
+      var boxCoords = [[x0,y0],[x1,y1],[x2,y2],[x3,y3]];
+
+      this._draw.beginDraw();
+      this.blackoutOutside(boxCoords);
+      this._draw.drawPolygon(boxCoords,
+                            color.WHITE,
+                            defaultDrawWidth*this._draw.displayToViewportScale()[0]);
+      this._draw.dispImage(true, true);
+      dragInfo.url = this._draw.viewport.toDataURL();
+
       var requestObj = {
         frame: this.currentFrame(),
       };
@@ -1854,7 +1873,7 @@ export class AnnotationCanvas extends HTMLElement
 
   keydownHandler(event)
   {
-    console.log(`this._shortcutsDisabled: ${this._shortcutsDisabled}`)
+    console.log(`annotation.js this._shortcutsDisabled: ${this._shortcutsDisabled}`)
     if (this._shortcutsDisabled) {
       return;
     }
@@ -1873,7 +1892,7 @@ export class AnnotationCanvas extends HTMLElement
     {
       if (event.code == 'Delete' && this._determineCanEdit(this.activeLocalization))
       {
-        this.dispatchEvent(new CustomEvent("delete", 
+        this.dispatchEvent(new CustomEvent("delete",
         {detail: {'localization': this.activeLocalization}, composed:true}));
       }
     }
@@ -2635,7 +2654,7 @@ export class AnnotationCanvas extends HTMLElement
           return;
         }
         if(localization.id != this.activeLocalization?.id) {
-          this.dispatchEvent(new CustomEvent("styleChange", 
+          this.dispatchEvent(new CustomEvent("styleChange",
               {detail: {'cursor': 'pointer'}, composed:true}));
           this.emphasizeLocalization(localization);
         }
@@ -2647,7 +2666,7 @@ export class AnnotationCanvas extends HTMLElement
 
         if (this._emphasis != null && this._emphasis.id != this.activeLocalization?.id)
         {
-          this.dispatchEvent(new CustomEvent("styleChange", 
+          this.dispatchEvent(new CustomEvent("styleChange",
               {detail: {'cursor': null}, composed:true}));
           this._emphasis = null;
           this.refresh();
@@ -2667,8 +2686,8 @@ export class AnnotationCanvas extends HTMLElement
       }
       else if (resizeType)
       {
-        
-        this.dispatchEvent(new CustomEvent("styleChange", 
+
+        this.dispatchEvent(new CustomEvent("styleChange",
               {detail: {'cursor': resizeType[0]}, composed:true}));
         this._impactVector = resizeType[1];
         this.refresh();
@@ -2681,12 +2700,12 @@ export class AnnotationCanvas extends HTMLElement
           // If we tripped in during a select, don't override the pointer
           if (mouseEvent.buttons == 0)
           {
-            this.dispatchEvent(new CustomEvent("styleChange", 
+            this.dispatchEvent(new CustomEvent("styleChange",
               {detail: {'cursor': 'grab'}, composed:true}));
           }
           else
           {
-            this.dispatchEvent(new CustomEvent("styleChange", 
+            this.dispatchEvent(new CustomEvent("styleChange",
               {detail: {'cursor': 'grabbing'}, composed:true}));
           }
           this.emphasizeLocalization(localization);
@@ -2694,14 +2713,14 @@ export class AnnotationCanvas extends HTMLElement
         else if (localization)
         {
           // User moved off localization
-          this.dispatchEvent(new CustomEvent("styleChange", 
+          this.dispatchEvent(new CustomEvent("styleChange",
               {detail: {'cursor': 'pointer'}, composed:true}));
           this.emphasizeLocalization(localization);
         }
         else
         {
           // User moved off localization
-          this.dispatchEvent(new CustomEvent("styleChange", 
+          this.dispatchEvent(new CustomEvent("styleChange",
               {detail: {'cursor': null}, composed:true}));
           if (this._emphasis != null)
           {
@@ -2713,14 +2732,14 @@ export class AnnotationCanvas extends HTMLElement
     }
     if (this._mouseMode == MouseMode.ZOOM_ROI)
     {
-      this.dispatchEvent(new CustomEvent("styleChange", 
+      this.dispatchEvent(new CustomEvent("styleChange",
               {detail: {'cursor': 'zoom-in'}, composed:true}));
     }
 
     if (this._mouseMode == MouseMode.NEW_POLY)
     {
       cursorTypes.forEach((t) => {that._textOverlay.classList.remove("select-"+t);});
-      this.dispatchEvent(new CustomEvent("styleChange", 
+      this.dispatchEvent(new CustomEvent("styleChange",
               {detail: {'cursor': 'crosshair'}, composed:true}));
       this._polyMaker.onMouseOver(location);
     }
@@ -2732,7 +2751,7 @@ export class AnnotationCanvas extends HTMLElement
     if (this._mouseMode == MouseMode.NEW)
     {
       cursorTypes.forEach((t) => {this._textOverlay.classList.remove("select-"+t);});
-      this.dispatchEvent(new CustomEvent("styleChange", 
+      this.dispatchEvent(new CustomEvent("styleChange",
               {detail: {'cursor': 'crosshair'}, composed:true}));
       let over_threshold = () => {
         return (performance.now()-this._lastHoverDraw) > (1000.0/30);
@@ -2905,7 +2924,7 @@ export class AnnotationCanvas extends HTMLElement
       {
         this._mouseMode = MouseMode.RESIZE;
         this._impactVector=resizeType[1];
-        this.dispatchEvent(new CustomEvent("styleChange", 
+        this.dispatchEvent(new CustomEvent("styleChange",
               {detail: {'cursor': resizeType[0]}, composed:true}));
       }
       else if (localization == this.activeLocalization && this._determineCanEdit(localization))
@@ -5069,7 +5088,7 @@ export class AnnotationCanvas extends HTMLElement
         idx++;
       }
     }
-    
+
     return tempCtx.getImageData(0,0,width,height);
   }
   tileGOP()
