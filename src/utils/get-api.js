@@ -7,6 +7,15 @@ function getApi(host=null, token=null) {
   if (host === null && typeof window !== 'undefined') {
     host = window.location.origin;
   }
+  if (window.self !== window.top) {
+    // In an iframe
+    if (typeof KEYCLOAK_ENABLED === "undefined") {
+      window.KEYCLOAK_ENABLED = parent.KEYCLOAK_ENABLED;
+    }
+    if (typeof BACKEND === "undefined") {
+      window.BACKEND = parent.BACKEND;
+    }
+  }
   if (token) {
     let TokenAuth = defaultClient.authentications['TokenAuth'];
     TokenAuth.apiKey = token;
