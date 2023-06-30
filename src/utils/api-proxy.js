@@ -1,5 +1,14 @@
 async function getOrRefreshAccessToken() {
   let accessToken = null;
+  if (window.self !== window.top) {
+    // In an iframe
+    if (typeof KEYCLOAK_ENABLED === "undefined") {
+      window.KEYCLOAK_ENABLED = parent.KEYCLOAK_ENABLED;
+    }
+    if (typeof BACKEND === "undefined") {
+      window.BACKEND = parent.BACKEND;
+    }
+  }
   if (KEYCLOAK_ENABLED) {
     // Check to see if we are using a JWT
     accessToken = localStorage.getItem("access_token");
