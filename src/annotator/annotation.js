@@ -2858,7 +2858,7 @@ export class AnnotationCanvas extends HTMLElement
 
       if (clickEvent.button == 0)
       {
-        if (this.draft.dtype == "dot")
+        if (this.draft.dtype == "dot" || this.draft.dtype == "sam")
         {
           const dragEvent = {};
           dragEvent.start = {x: clickLocation[0], y: clickLocation[1]};
@@ -3616,7 +3616,7 @@ export class AnnotationCanvas extends HTMLElement
         requestObj.u = x1 - x0;
         requestObj.v = y1 - y0;
       }
-      else if (type=='dot')
+      else if (type=='dot' || type == 'sam')
       {
         var previewSize=50;
         localization=this.scaleToRelative(dotInfo);
@@ -4905,14 +4905,16 @@ export class AnnotationCanvas extends HTMLElement
       });
   }
 
-  getPNGdata(localizations) {
+  getPNGdata(localizations, options) {
     const width = this._offscreen.width;
     const height = this._offscreen.height;
 
     this._offscreenDraw.clearRect(0,0,width,height);
     this._offscreenDraw.dispImage(true, !localizations);
 
-    return this._offscreen.convertToBlob();
+
+    return this._offscreen.convertToBlob(options);
+
   }
 
   underwaterCorrection(skip_shader)
