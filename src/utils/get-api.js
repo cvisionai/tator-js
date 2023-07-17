@@ -4,16 +4,24 @@ import { getApiProxy } from './api-proxy.js';
 
 function getApi(host=null, token=null) {
   let defaultClient = ApiClient.instance;
-  if (host === null && typeof window !== 'undefined') {
-    host = window.location.origin;
-  }
   if (window.self !== window.top) {
     // In an iframe
     if (typeof KEYCLOAK_ENABLED === "undefined") {
       window.KEYCLOAK_ENABLED = parent.KEYCLOAK_ENABLED;
     }
-    if (typeof BACKEND === "undefined") {
+    if (typeof BACKEND === "undefined" && typeof parent.BACKEND !== "undefined") {
       window.BACKEND = parent.BACKEND;
+    }
+  }
+  if (host === null) {
+    if (typeof BACKEND === "undefined") {
+      if (typeof window !== "undefined") {
+        host = window.location.origin;
+      } else {
+        console.error("Could not determine backend host!");
+      }
+    } else {
+      host = BACKEND;
     }
   }
   if (token) {
