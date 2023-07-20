@@ -1084,6 +1084,17 @@ export class AnnotationCanvas extends HTMLElement
     return this._contextMenuNone;
   }
 
+  updateMouseMode(val) {
+    console.log("⭕️updateMouseMode: ", val);
+    this.dispatchEvent(new CustomEvent("updateMouseMode", 
+    {
+      composed: true,
+      detail: {
+        mode: val
+      }
+    }));
+  }
+
   enableShortcuts() {
     this._shortcutsDisabled = false;
   }
@@ -2923,7 +2934,8 @@ export class AnnotationCanvas extends HTMLElement
       else if (resizeType)
       {
         this._mouseMode = MouseMode.RESIZE;
-        this.dispatchEvent(new CustomEvent("mouse-downing", {composed:true}));
+        // this.dispatchEvent(new CustomEvent("mouse-downing", {composed:true}));
+        this.updateMouseMode("RESIZE");
         this._impactVector=resizeType[1];
         this.dispatchEvent(new CustomEvent("styleChange",
               {detail: {'cursor': resizeType[0]}, composed:true}));
@@ -4312,7 +4324,8 @@ export class AnnotationCanvas extends HTMLElement
           if (!this._clipboard.isCutting(this.activeLocalization))
           {
             this._mouseMode = MouseMode.MOVE;
-            this.dispatchEvent(new CustomEvent("mouse-downing", {composed:true}));
+            // this.dispatchEvent(new CustomEvent("mouse-downing", {composed:true}));
+            this.updateMouseMode("MOVE");
           }
         }
         else
