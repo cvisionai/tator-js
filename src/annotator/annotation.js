@@ -352,6 +352,9 @@ export class CanvasDrag
       }
     }
     this._event.current = {};
+    this._event.shiftKey = event.shiftKey;
+    this._event.altKey = event.altKey;
+    this._event.ctrlKey = event.ctrlKey;
     this._event.current.x = x
     this._event.current.y = y;
     this._event.length = this.magnitude(this._event.start,
@@ -385,6 +388,9 @@ export class CanvasDrag
         this._event.end.y = (event.pageY-this.pageTop)*scale[1];
       }
     }
+    this._event.shiftKey = event.shiftKey;
+    this._event.altKey = event.altKey;
+    this._event.ctrlKey = event.ctrlKey;
     this._event.end.time = Date.now();
     this._event.duration = this._event.end.time - this._event.start.time;
     this._event.length = this.magnitude(this._event.start,
