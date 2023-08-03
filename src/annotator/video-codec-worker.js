@@ -756,7 +756,7 @@ class TatorVideoBuffer {
       if (this._bufferManager == null)
       {
         // Allocate enough static space for 55 frames
-        this._bufferManager = new VideoBufferManager(frame.allocationSize(), 55);
+        this._bufferManager = new VideoBufferManager(frame.allocationSize({rect:{width:frame.codedWidth, height:frame.codedHeight}}), 55);
       }
       let slot = this._bufferManager.getSlot();
       if (slot == null)
@@ -766,10 +766,10 @@ class TatorVideoBuffer {
         return;
       }
       let image = new Uint8Array(slot, CTRL_SIZE);
-      frame.copyTo(image).then(() => {
+      frame.copyTo(image, {rect:{width:frame.codedWidth, height:frame.codedHeight}}).then(() => {
         //console.info(`${performance.now()}: ${this._name}@${this._current_cursor}: Publishing @ ${frame.timestamp/timeScale}-${(frame.timestamp+frameDelta)/timeScale} KFO=${this.keyframeOnly}`);
-        const width = frame.displayWidth;
-        const height = frame.displayHeight;
+        const width = frame.codedWidth;
+        const height = frame.codedHeight;
         const format = frame.format;
         frame.close();
         this._frameReturn();
