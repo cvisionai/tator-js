@@ -426,6 +426,24 @@ function dragToBox(dragInfo)
   return [sx,sy,w,h];
 }
 
+function boxToDrag(box, isFinal)
+{
+  let drag = {
+    start: {x: box[0], y: box[1]}
+  }
+  const swCorner = {x:box[0]+box[2],
+                y:box[1]+box[3]};
+  if (isFinal)
+  {
+    drag.end = swCorner;
+  }
+  else
+  {
+    drag.current = swCorner;
+  }
+  return drag;
+}
+
 function dragToLine(dragInfo)
 {
   var end = null;
@@ -1764,6 +1782,7 @@ export class AnnotationCanvas extends HTMLElement
 
   set mediaInfo(val) {
     this._mediaInfo = val;
+    this._aspectRatio = this._mediaInfo.width / this._mediaInfo.height;
   }
 
   set gridRows(val) {
@@ -4220,6 +4239,9 @@ export class AnnotationCanvas extends HTMLElement
     }
     else if (this._mouseMode==MouseMode.ZOOM_ROI)
     {
+      // On drag in ZOOM_ROI maintain aspect ratio
+      // of the video.
+      dragEvent = this.fixAspectOfDrag(dragEvent);
       if ('end' in dragEvent)
       {
         drawBox(dragEvent.start,
@@ -5124,5 +5146,33 @@ export class AnnotationCanvas extends HTMLElement
     this.drawFrame(this.currentFrame(), imageData, this._dims[0], this._dims[1], true);
     console.info(`Tile GOP finished in ${performance.now()-begin} ms`);
     document.body.style.cursor = null;
+  }
+
+  // Note: Aspect ratio is width / height
+  // Favor the larger size of the user drag
+  // Thusly,
+  // width / (width/height) results in height coord in aspect
+  // height * width / height results in width coord in aspect
+  fixAspectOfDrag(drag)
+  {
+    let isFinal = true;
+    let final = drag.end;
+    if (final == undefined)
+    {
+      isFinal = false;
+      final = drag.current;
+    }
+    let tempBox = dragToBox(dragInfo);
+    if (tempBox[2] > tempBox[3])
+    {
+      // Width is greater than Height
+      tempBox[3] = tempBox[2] / this._aspectRatio;
+    }
+    else
+    {
+      tempBox[2] = tempBox[3] * this._aspectRatio;
+    }
+
+    return boxToDrag(tempBox, isFinal);
   }
 }
