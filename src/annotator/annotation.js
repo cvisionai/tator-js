@@ -419,8 +419,8 @@ function dragToBox(dragInfo)
   {
     end = dragInfo.current;
   }
-  var sx = Math.min(dragInfo.start.x, dragInfo.end.x);
-  var sy = Math.min(dragInfo.start.y, dragInfo.end.y);
+  var sx = Math.min(dragInfo.start.x, end.x);
+  var sy = Math.min(dragInfo.start.y, end.y);
   var w = Math.abs(end.x - dragInfo.start.x);
   var h = Math.abs(end.y - dragInfo.start.y);
   return [sx,sy,w,h];
@@ -5162,7 +5162,7 @@ export class AnnotationCanvas extends HTMLElement
       isFinal = false;
       final = drag.current;
     }
-    let tempBox = dragToBox(dragInfo);
+    let tempBox = dragToBox(drag);
     if (tempBox[2] > tempBox[3])
     {
       // Width is greater than Height
