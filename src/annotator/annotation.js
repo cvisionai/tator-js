@@ -1058,6 +1058,7 @@ export class AnnotationCanvas extends HTMLElement
     this._textOverlay.addEventListener("mouseout", this.mouseOutHandler.bind(this));
     this._textOverlay.addEventListener("dblclick", this.dblClickHandler.bind(this));
     this._textOverlay.addEventListener("contextmenu", this.contextMenuHandler.bind(this));
+    this._textOverlay.addEventListener("wheel", this.mouseWheelHandler.bind(this));
 
     document.addEventListener("keydown", this.keydownHandler.bind(this));
     document.addEventListener("keyup", this.keyupHandler.bind(this));
@@ -2660,6 +2661,47 @@ export class AnnotationCanvas extends HTMLElement
     }
   }
 
+  mouseWheelHandler(mouseEvent)
+  {
+    if (mouseEvent.ctrlKey)
+    {
+      mouseEvent.preventDefault();
+      mouseEvent.stopPropagation();
+      var mouseLocation =this.scaleToViewport([mouseEvent.offsetX, mouseEvent.offsetY]);
+      let factor = 1 + (mouseEvent.wheelDelta / 1000);
+      this.zoomOnTarget(this.scaleToRelative(mouseLocation), factor);
+      this.mouseOverHandler(mouseEvent);
+    }
+  }
+
+  zoomOnTarget(coord, factor)
+  {
+    console.info(`${coord} ${factor}`);
+    let [_, __, width, height] = this._roi;
+    width /= factor;
+    height /= factor;
+    // Do center in absolute coordinates to avoid floating
+    // point losses.
+    coord[0] *= this._dims[0];
+    coord[1] *= this._dims[1];
+
+    let mediaWidth = width * this._dims[0];
+    let mediaHeight = height * this._dims[1];
+    let x = coord[0] - (mediaWidth/2);
+    let y = coord[1] - (mediaHeight/2);
+
+    let scaled = [x/this._dims[0],y/this._dims[1],mediaWidth/this._dims[0],mediaHeight/this._dims[1]];
+    console.info(`orig=${[x,y,mediaWidth,mediaHeight]}`);
+    this.setRoi(scaled[0], scaled[1], scaled[2], scaled[3]);
+    console.info(`Scaled=${scaled}`);
+    this._dirty = true;
+    this.refresh();
+    [x, y, width, height] = this._roi;
+    console.info((coord[0]-x)/width);
+    console.info((coord[1]-y)/height);
+
+  }
+
   mouseOverHandler(mouseEvent)
   {
     this._mouseOverActive = true;
@@ -3464,37 +3506,20 @@ export class AnnotationCanvas extends HTMLElement
   {
     clickEvent.preventDefault();
     var clickLocation = this.scaleToViewport([clickEvent.offsetX, clickEvent.offsetY]);
-    var relativeLocation = this.scaleToRelative(clickLocation);
     if (clickEvent.altKey == true && this.isPaused() == true)
     {
       if (clickEvent.button == 0)
       {
-        let [_, __, width, height] = this._roi;
-        width /= 2.0;
-        height /= 2.0;
-        let x = relativeLocation[0] - (width/2);
-        let y = relativeLocation[1] - (height/2);
-        this.setRoi(x, y, width, height);
-        this._dirty = true;
-        this.refresh();
+        this.zoomOnTarget(this.scaleToRelative(clickLocation), 2);
+        this.mouseOverHandler(clickEvent);
       }
     }
     else if (clickEvent.ctrlKey == true && this.isPaused() == true)
     {
       if (clickEvent.button == 0)
       {
-        let [_, __, width, height] = this._roi;
-        width *= 2.0;
-        height *= 2.0;
-        width = Math.min(width, 1.0);
-        height = Math.min(width, 1.0);
-        let x = relativeLocation[0] - (width/2);
-        let y = relativeLocation[1] - (height/2);
-        x = Math.max(x,0.0);
-        y = Math.max(y,0.0);
-        this.setRoi(x, y, width, height);
-        this._dirty = true;
-        this.refresh();
+        this.zoomOnTarget(this.scaleToRelative(clickLocation), 0.5);
+        this.mouseOverHandler(clickEvent);
       }
     }
     else
