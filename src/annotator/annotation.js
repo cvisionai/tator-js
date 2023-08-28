@@ -423,6 +423,7 @@ function dragToBox(dragInfo)
   var sy = Math.min(dragInfo.start.y, end.y);
   var w = Math.abs(end.x - dragInfo.start.x);
   var h = Math.abs(end.y - dragInfo.start.y);
+
   return [sx,sy,w,h];
 }
 
@@ -4241,7 +4242,10 @@ export class AnnotationCanvas extends HTMLElement
     {
       // On drag in ZOOM_ROI maintain aspect ratio
       // of the video.
-      dragEvent = this.fixAspectOfDrag(dragEvent);
+      if (dragEvent.altKey != true)
+      {
+        dragEvent = this.fixAspectOfDrag(dragEvent);
+      }
       if ('end' in dragEvent)
       {
         drawBox(dragEvent.start,
@@ -5171,6 +5175,16 @@ export class AnnotationCanvas extends HTMLElement
     else
     {
       tempBox[2] = tempBox[3] * this._aspectRatio;
+    }
+
+    // Always pin the box to the start location
+    if (final.x < drag.start.x)
+    {
+      tempBox[0] += drag.start.x - (tempBox[0]+tempBox[2]);
+    }
+    if (final.y < drag.start.y)
+    {
+      tempBox[1] += drag.start.y - (tempBox[1]+tempBox[3]);
     }
 
     return boxToDrag(tempBox, isFinal);
