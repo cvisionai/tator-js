@@ -2671,6 +2671,14 @@ export class AnnotationCanvas extends HTMLElement
       let factor = 1 + (mouseEvent.wheelDelta / 1000);
       this.zoomOnTarget(this.scaleToRelative(mouseLocation), factor);
       this.mouseOverHandler(mouseEvent);
+      if (this._mouseMode != MouseMode.PAN)
+      {
+        this.dispatchEvent(
+          new CustomEvent("modeChange",
+                    {composed: true,
+                      detail: {newMode: "pan", metaMode: false}
+                    }));
+      }
     }
   }
 
