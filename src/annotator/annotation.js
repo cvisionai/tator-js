@@ -2685,29 +2685,29 @@ export class AnnotationCanvas extends HTMLElement
   zoomOnTarget(coord, factor)
   {
     console.info(`${coord} ${factor}`);
-    let [_, __, width, height] = this._roi;
-    width /= factor;
-    height /= factor;
+    let [sx,sy, width, height] = this._roi;
+    let new_width = width / factor;
+    let new_height = height / factor;
+
+    // This gives us the relative positioning based on the view
+    let relX = (coord[0]-sx)/width;
+    let relY = (coord[1]-sy)/height;
+
     // Do center in absolute coordinates to avoid floating
     // point losses.
     coord[0] *= this._dims[0];
     coord[1] *= this._dims[1];
 
-    let mediaWidth = width * this._dims[0];
-    let mediaHeight = height * this._dims[1];
-    let x = coord[0] - (mediaWidth/2);
-    let y = coord[1] - (mediaHeight/2);
+    let mediaWidth = new_width * this._dims[0];
+    let mediaHeight = new_height * this._dims[1];
+    let x = coord[0] - (mediaWidth*relX);
+    let y = coord[1] - (mediaHeight*relY);
 
     let scaled = [x/this._dims[0],y/this._dims[1],mediaWidth/this._dims[0],mediaHeight/this._dims[1]];
-    console.info(`orig=${[x,y,mediaWidth,mediaHeight]}`);
     this.setRoi(scaled[0], scaled[1], scaled[2], scaled[3]);
-    console.info(`Scaled=${scaled}`);
+  
     this._dirty = true;
     this.refresh();
-    [x, y, width, height] = this._roi;
-    console.info((coord[0]-x)/width);
-    console.info((coord[1]-y)/height);
-
   }
 
   mouseOverHandler(mouseEvent)
