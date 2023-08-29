@@ -2671,7 +2671,8 @@ export class AnnotationCanvas extends HTMLElement
       let factor = 1 + (mouseEvent.wheelDelta / 1000);
       this.zoomOnTarget(this.scaleToRelative(mouseLocation), factor);
       this.mouseOverHandler(mouseEvent);
-      if (this._mouseMode != MouseMode.PAN)
+      let [sx,sy,width,height] = this._roi;
+      if (this._mouseMode != MouseMode.PAN && (width < 1.0 || height < 1.0))
       {
         this.dispatchEvent(
           new CustomEvent("modeChange",
@@ -2679,6 +2680,16 @@ export class AnnotationCanvas extends HTMLElement
                       detail: {newMode: "pan", metaMode: false}
                     }));
       }
+
+      if (width >= 1.0 && height >= 1.0)
+      {
+        this.dispatchEvent(
+          new CustomEvent("modeChange",
+                    {composed: true,
+                      detail: {newMode: "query", metaMode: false}
+                    }));
+      }
+      
     }
   }
 
@@ -3514,20 +3525,37 @@ export class AnnotationCanvas extends HTMLElement
   {
     clickEvent.preventDefault();
     var clickLocation = this.scaleToViewport([clickEvent.offsetX, clickEvent.offsetY]);
-    if (clickEvent.altKey == true && this.isPaused() == true)
+    if (clickEvent.ctrlKey == true && this.isPaused() == true)
     {
       if (clickEvent.button == 0)
       {
         this.zoomOnTarget(this.scaleToRelative(clickLocation), 2);
         this.mouseOverHandler(clickEvent);
+        if (this._mouseMode != MouseMode.PAN)
+        {
+        this.dispatchEvent(
+          new CustomEvent("modeChange",
+                    {composed: true,
+                      detail: {newMode: "pan", metaMode: false}
+                    }));
+        }
       }
     }
-    else if (clickEvent.ctrlKey == true && this.isPaused() == true)
+    else if (clickEvent.altKey == true && this.isPaused() == true)
     {
       if (clickEvent.button == 0)
       {
         this.zoomOnTarget(this.scaleToRelative(clickLocation), 0.5);
         this.mouseOverHandler(clickEvent);
+        let [sx,sy,width,height] = this._roi;
+        if (width >= 1.0 && height >= 1.0)
+        {
+          this.dispatchEvent(
+            new CustomEvent("modeChange",
+                      {composed: true,
+                        detail: {newMode: "query", metaMode: false}
+                      }));
+        }
       }
     }
     else
