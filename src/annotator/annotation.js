@@ -965,12 +965,17 @@ export class AnnotationCanvas extends HTMLElement
     this._canvas.style.width = "100%";
     this._canvas.background = "black";
     this._canvas.setAttribute("height", "1");
-    this._canvas.style.zIndex = -1;
     this._shadow.appendChild(this._canvas);
+
+    // can't do in init
+    setTimeout(() => {
+      this.style.zIndex = 2;
+    },0);
 
     this._textOverlay = document.createElement("text-overlay");
     this._textOverlay.style.position = "absolute";
     this._textOverlay.style.display = "none"; // Don't display until a resize
+    this._textOverlay.style.zIndex = 3;
     this._shadow.appendChild(this._textOverlay);
     this._coordinateOverlayIdx = this._textOverlay.addText(0.93,.05, "", {'fontSize':'12pt'});
     this._textOverlay.toggleTextDisplay(this._coordinateOverlayIdx,false);
@@ -991,7 +996,7 @@ export class AnnotationCanvas extends HTMLElement
       customElements.whenDefined("canvas-context-menu").then(() => {
         // Context menu (right-click): Tracks
         this._contextMenuTrack = document.createElement("canvas-context-menu");
-        this._contextMenuTrack.style.zIndex = 2;
+        this._contextMenuTrack.style.zIndex = 4;
         this._contextMenuTrack.hideMenu();
         this._shadow.appendChild(this._contextMenuTrack);
         this._contextMenuTrack.addMenuEntry("Set as main track", this.contextMenuCallback.bind(this));
@@ -1521,7 +1526,6 @@ export class AnnotationCanvas extends HTMLElement
     dragInfo.start = {x: poly[0][0], y: poly[0][1]};
     dragInfo.current = dragInfo.start;
     dragInfo.end = {x: poly[2][0], y: poly[2][1]};
-    dragInfo.url = this._draw.viewport.toDataURL();
 
     if (createNewTrack)
     {
@@ -1542,7 +1546,6 @@ export class AnnotationCanvas extends HTMLElement
                             color.WHITE,
                             defaultDrawWidth*this._draw.displayToViewportScale()[0]);
       this._draw.dispImage(true, true);
-      dragInfo.url = this._draw.viewport.toDataURL();
 
       var requestObj = {
         frame: this.currentFrame(),
@@ -1587,7 +1590,7 @@ export class AnnotationCanvas extends HTMLElement
     this._canvas=document.createElement("canvas");
     this._canvas.style.width = "100%";
     this._canvas.background = "black";
-    this._canvas.style.zIndex = -1;
+    this.style.zIndex = 2;
     this._shadow.appendChild(this._canvas);
 
     // Re-initalize openGL component
@@ -2962,7 +2965,6 @@ export class AnnotationCanvas extends HTMLElement
           dragEvent.start = {x: clickLocation[0], y: clickLocation[1]};
           dragEvent.current = dragEvent.start;
           dragEvent.end = dragEvent.start;
-          dragEvent.url = this._draw.viewport.toDataURL();
 
           // Make a fake drag on the click event
           dragEvent.start = dragEvent.current;
@@ -4352,9 +4354,6 @@ export class AnnotationCanvas extends HTMLElement
         {
           drawBox(dragEvent.start,
                   dragEvent.end);
-          console.info(window.performance.now());
-          dragEvent.url = this._draw.viewport.toDataURL();
-          console.info(window.performance.now());
           this.makeModalCreationPrompt(this.draft,
                                        dragEvent,
                                        null,
@@ -4378,7 +4377,6 @@ export class AnnotationCanvas extends HTMLElement
         {
           drawLine(dragEvent.start, dragEvent.end);
           var that = this;
-          dragEvent.url = this._draw.viewport.toDataURL();
           this.makeModalCreationPrompt(this.draft,
                                        dragEvent,
                                        null,
