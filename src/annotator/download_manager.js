@@ -189,6 +189,11 @@ export class DownloadManager
     else if (type == "ready")
     {
       this._startBias.set(msg.data["buf_idx"], msg.data["startBias"]);
+      this._parent.dispatchEvent(new CustomEvent("downloaderReady",
+      {
+        detail: {buf_idx : msg.data["buf_idx"]},
+        composed: true
+      }));
       if (msg.data["buf_idx"] == this._parent._scrub_idx)
       {
         const buf_idx = msg.data["buf_idx"];

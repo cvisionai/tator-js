@@ -958,16 +958,28 @@ export class VideoCanvas extends AnnotationCanvas {
       this._videoElement[idx].named_idx = idx;
     }
 
+    let count = this._videoElement.length;
     if (this._videoElement[0]._compat)
     {
-      this.dispatchEvent(new CustomEvent("bufferLoaded",
-                                              {composed: true,
-                                                detail: {"percent_complete":100.0}
-                                              }));
-      this.dispatchEvent(new CustomEvent("maxPlaybackRate", {
-        detail: {rate: 4},
-        composed: true
-      }));
+      this.addEventListener("downloaderReady", (evt) => {
+        // Once all files are ready notify playback as ready.
+        count--;
+        if (count == 0)
+        {
+          this.dispatchEvent(new CustomEvent("bufferLoaded",
+                                                  {composed: true,
+                                                    detail: {"percent_complete":100.0}
+                                                  }));
+          this.dispatchEvent(new CustomEvent("maxPlaybackRate", {
+            detail: {rate: 4},
+            composed: true
+          }));
+          this.dispatchEvent(new CustomEvent("playbackReady", {
+            composed: true
+          }));
+          this._onDemandPlaybackReady = true; // compat mode this is always true.
+        }
+      });
 
       // Increase GPU buffer to ensure smoother playback
       this._draw.jumboBufferMode();
@@ -1255,7 +1267,6 @@ export class VideoCanvas extends AnnotationCanvas {
 
   frameToComps(frame, buf_idx)
   {
-    console.info(`FramesToComps = ${frame} ${this._fps}`);
     const time = ((1/this._fps)*frame)+(1/(this._fps*4));
     let bias = 0.0;
     if (this._dlWorker)
