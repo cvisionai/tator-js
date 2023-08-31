@@ -531,13 +531,6 @@ export class VideoCanvas extends AnnotationCanvas {
         path = null;
       }
       let v = new TatorSimpleVideo(idx, path);
-      if (idx == this._scrub_idx)
-      {
-        this.dispatchEvent(new CustomEvent("bufferLoaded",
-                                              {composed: true,
-                                                detail: {"percent_complete":100.0}
-                                              }));
-      }
       //window.alert(`VideoDecoder: ${'VideoDecoder' in window}; Secure Context: ${window.isSecureContext}`);
       return v;
     }
@@ -895,6 +888,7 @@ export class VideoCanvas extends AnnotationCanvas {
 
     this._videoElement = [];
     let streaming_files = this._videoObject.media_files.streaming;
+    this._fps=Math.round(1000*fps)/1000;
 
     if (this._localMode == 1)
     {
@@ -966,6 +960,10 @@ export class VideoCanvas extends AnnotationCanvas {
 
     if (this._videoElement[0]._compat)
     {
+      this.dispatchEvent(new CustomEvent("bufferLoaded",
+                                              {composed: true,
+                                                detail: {"percent_complete":100.0}
+                                              }));
       this.dispatchEvent(new CustomEvent("maxPlaybackRate", {
         detail: {rate: 4},
         composed: true
@@ -982,7 +980,6 @@ export class VideoCanvas extends AnnotationCanvas {
 
     // Resize the viewport
     this._draw.resizeViewport(dims[0], dims[1]);
-    this._fps=Math.round(1000*fps)/1000;
     this._numFrames=numFrames-1;
     this._numSeconds=fps*numFrames;
     this._dims=dims;
@@ -1258,6 +1255,7 @@ export class VideoCanvas extends AnnotationCanvas {
 
   frameToComps(frame, buf_idx)
   {
+    console.info(`FramesToComps = ${frame} ${this._fps}`);
     const time = ((1/this._fps)*frame)+(1/(this._fps*4));
     let bias = 0.0;
     if (this._dlWorker)
