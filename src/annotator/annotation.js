@@ -4323,7 +4323,6 @@ export class AnnotationCanvas extends HTMLElement
         that.setRoi(imageRoi[0],imageRoi[1],imageRoi[2],imageRoi[3]);
         that.refresh();
         updateStatus("Zoom Activated");
-        // this._mouseMode = MouseMode.QUERY;
         this._canvas.dispatchEvent(
           new CustomEvent("drawComplete",
                     {composed: true,
