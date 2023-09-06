@@ -1612,7 +1612,7 @@ export class AnnotationCanvas extends HTMLElement
     this.setRoi(0,0,1.0, 1.0);
     this._dirty = true;
     this.dispatchEvent(new CustomEvent("zoomChange", {
-      detail: {zoom: 100},
+      detail: {zoom: 100, roi: [0,0,1,1]},
       composed: true
     }));
   }
@@ -1629,7 +1629,7 @@ export class AnnotationCanvas extends HTMLElement
     const zoomHeight = 1.0 / height;
     const zoom = Math.round(100 * Math.max(zoomWidth, zoomHeight));
     this.dispatchEvent(new CustomEvent("zoomChange", {
-      detail: {zoom: zoom},
+      detail: {zoom: zoom, roi: this._roi},
       composed: true
     }));
   }
