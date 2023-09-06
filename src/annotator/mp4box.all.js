@@ -6447,7 +6447,7 @@ ISOFile.prototype.getInfo = function() {
 			track.references = [];
 			if (trak.tref) {
 				for (j = 0; j < trak.tref.boxes.length; j++) {
-					ref = {};
+					let ref = {};
 					track.references.push(ref);
 					ref.type = trak.tref.boxes[j].type;
 					ref.track_ids = trak.tref.boxes[j].track_ids;
