@@ -10,6 +10,27 @@
 
 import { CTRL_SIZE } from "./video-buffer-manager";
 
+function concatArrayBuffers(buffer1, buffer2) {
+  // Create views for the two ArrayBuffer objects
+  const view1 = new Uint8Array(buffer1);
+  const view2 = new Uint8Array(buffer2);
+
+  // Create a new ArrayBuffer with the combined length
+  const combinedLength = view1.length + view2.length;
+  const combinedBuffer = new ArrayBuffer(combinedLength);
+
+  // Create a Uint8Array view for the combined ArrayBuffer
+  const combinedView = new Uint8Array(combinedBuffer);
+
+  // Copy the contents of the first ArrayBuffer
+  combinedView.set(view1, 0);
+
+  // Copy the contents of the second ArrayBuffer after the first one
+  combinedView.set(view2, view1.length);
+
+  return combinedBuffer;
+}
+
 // TimeRanges isn't user constructable so make our own
 export class TatorTimeRanges {
   constructor()
@@ -693,12 +714,18 @@ class TatorVideoManager {
 }
 
 export class TatorVideoDecoder {
-  constructor(id, canvas)
+  constructor(id, canvas, utilityBuffer)
   {
     this._canvas = canvas;
     console.info("Created WebCodecs based Video Decoder");
     this._buffer = new TatorVideoManager(this, `Video Buffer ${id}`);
     this._init = false;
+    this._useUtilityBuffer = utilityBuffer;
+    if (utilityBuffer)
+    {
+      this._utilityArrayBuffer = new ArrayBuffer(0);
+      this._utilityVideo = document.createElement("video");
+    }
     this._buffer.onBuffered = () => {
       //this._buffer.buffered.print(`${id} LATEST`);
       if (this.onBuffered)
@@ -714,6 +741,14 @@ export class TatorVideoDecoder {
     this._compatVideo.src = videoUrl;
     this._compatVideo.load();
     this._compat = true;
+  }
+
+  get utilityBuffer() {
+    if (this._useUtilityBuffer = false)
+    {
+      return null;
+    }
+    return this._utilityVideo;
   }
 
   getMediaElementCount() {
@@ -947,6 +982,17 @@ export class TatorVideoDecoder {
 
   appendLatestBuffer(data, callback, timestampOffset)
   {
+    if (this._useUtilityBuffer)
+    {
+      this._utilityArrayBuffer = concatArrayBuffers(this._utilityArrayBuffer, data);
+      this._utilityArrayBuffer.app
+      if (this._utilityUrl)
+      {
+        URL.revokeObjectURL(this._utilityUrl);
+      }
+      this._utilityUrl = URL.createObjectURL(new Blob([this._utilityArrayBuffer]));
+      this._utilityVideo.src = this._utilityUrl;
+    }
     this._buffer.appendBuffer(data, timestampOffset);
     setTimeout(callback,0);
   }

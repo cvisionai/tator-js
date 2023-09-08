@@ -513,6 +513,11 @@ export class VideoCanvas extends AnnotationCanvas {
     return this._videoObject.id;
   }
 
+  get utilityBuffer()
+  {
+    return this._videoElement[this._scrub_idx].utilityBuffer;
+  }
+
   construct_demuxer(idx, resolution)
   {
     let use_hls = (this._videoObject.media_files.streaming[0].hls ? true : false);
@@ -536,7 +541,7 @@ export class VideoCanvas extends AnnotationCanvas {
     }
     else
     {
-      let p = new TatorVideoDecoder(resolution, this);
+      let p = new TatorVideoDecoder(resolution, this, this._scrub_idx == idx);
       // Hook up summary level indication
       if (idx == this._scrub_idx && this._scrub_idx != this._play_idx)
       {
