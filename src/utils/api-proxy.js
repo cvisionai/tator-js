@@ -25,13 +25,21 @@ async function getOrRefreshAccessToken() {
         const data = await fetch('/refresh', {credentials: "same-origin"})
         .then((response) => {
           if (!response.ok) {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("issue_time");
+            localStorage.removeItem("expires_in");
+            localStorage.removeItem("id_token");
             throw new Error("Refresh failed!");
           }
           return response.json();
         })
         .catch((error) => {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("issue_time");
+          localStorage.removeItem("expires_in");
+          localStorage.removeItem("id_token");
           console.error(`Error refreshing token! ${error}`);
-          window.location.href = `/accounts/login&state=${window.location.pathname}`;
+          window.location.href = `/`;
         });
         localStorage.setItem("access_token", data.access_token);
         localStorage.setItem("expires_in", data.expires_in);
