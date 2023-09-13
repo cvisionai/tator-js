@@ -1109,7 +1109,7 @@ export class DrawGL
       this.drawBuffer.filter.push(...effect);
     }
 
-    this.drawBuffer.vertices = this.drawBuffer.vertices.concat(vertices);
+    this.drawBuffer.vertices.push(...vertices);
 
     for (idx = 0; idx < quadIndices.length; idx++)
     {
@@ -1211,7 +1211,7 @@ export class DrawGL
       this.drawBuffer.filter.push(...effect);
     }
 
-    this.drawBuffer.vertices = this.drawBuffer.vertices.concat(vertices);
+    this.drawBuffer.vertices.push(...vertices);
 
     // If indices are unsupplied, assume 1-1 with supplied
     if (indices == undefined)
@@ -1224,7 +1224,7 @@ export class DrawGL
     }
     else
     {
-      this.drawBuffer.indices = [...this.drawBuffer.indices, ...indices];
+      this.drawBuffer.indices.push(...indices);
     }
   }
   // Draw a polygon given a series of points, polygon has to have 3
