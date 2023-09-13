@@ -29,6 +29,7 @@
 import { FrameBuffer } from "./FrameBuffer.js";
 import { color } from "./drawGL_colors.js";
 import {triangulate} from "./tesselator.js";
+import * as earcut from "earcut"
 
 const vsSource = `#version 300 es
     in vec2 vertex;
@@ -252,9 +253,10 @@ const quadIndices = new Uint8Array([0, 1, 2, 0, 2, 3]);
 // WebGL export class to support drawing image frames + draw actions.
 export class DrawGL
 {
-  constructor(canvas)
+  constructor(canvas, video)
   {
     // initialize member variables for good practice
+    this.parent = video;
     this.viewport = canvas;
     this.gl = null;
     this.imageShaderProg=null;
@@ -1115,12 +1117,13 @@ export class DrawGL
     }
   }
 
-  drawVertex(points, penColor, alpha, effect)
+  drawVertex(points, penColor, alpha, effect, indices)
   {
     if (this.drawBuffer == null)
     {
       this.beginDraw();
     }
+  
     if (penColor == undefined)
     {
       penColor = color.BLUE;
@@ -1210,10 +1213,18 @@ export class DrawGL
 
     this.drawBuffer.vertices = this.drawBuffer.vertices.concat(vertices);
 
-    // Push all the points supplied
-    for (idx = 0; idx < points.length/2; idx++)
+    // If indices are unsupplied, assume 1-1 with supplied
+    if (indices == undefined)
     {
-      this.drawBuffer.indices.push(idx+startIdx);
+      // Push all the points supplied
+      for (idx = 0; idx < points.length/2; idx++)
+      {
+        this.drawBuffer.indices.push(idx+startIdx);
+      }
+    }
+    else
+    {
+      this.drawBuffer.indices = [...this.drawBuffer.indices, ...indices];
     }
   }
   // Draw a polygon given a series of points, polygon has to have 3
@@ -1276,9 +1287,26 @@ export class DrawGL
     {
       contour.push(...p);
     }
-    let triangles = triangulate([contour]);
 
-    this.drawVertex(triangles, penColor, alpha, effect);
+    // If we are paused, use accurate tesselation else use earcut
+    if (this.parent._playing == false || this.parent._playing == undefined)
+    {
+      let triangles = triangulate([contour]);
+      this.drawVertex(triangles, penColor, alpha, effect);
+    }
+    else
+    {
+      let indices = earcut(contour);
+      if (this.drawBuffer && 'vertices' in this.drawBuffer)
+      {
+        let currentVertices = this.drawBuffer.vertices.length/2;
+        for (let idx = 0; idx < indices.length; idx++)
+        {
+          indices[idx] += currentVertices;
+        }
+      }
+      this.drawVertex(contour, penColor, alpha, effect, indices);
+    }
   }
 
   computeBounds(vertices)
