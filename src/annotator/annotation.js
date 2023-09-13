@@ -1062,7 +1062,7 @@ export class AnnotationCanvas extends HTMLElement
     this._clipboard = new Clipboard(this);
     this._polyMaker = new PolyMaker(this);
 
-    this._draw=new DrawGL(this._canvas);
+    this._draw=new DrawGL(this._canvas, this);
     this._canvas.addEventListener('webglcontextlost', (evt) => {
       console.warn("WebGL Context lost");
       evt.preventDefault();
@@ -1117,7 +1117,7 @@ export class AnnotationCanvas extends HTMLElement
 
     try {
       this._offscreen = new OffscreenCanvas(100, 100);
-      this._offscreenDraw = new DrawGL(this._offscreen);
+      this._offscreenDraw = new DrawGL(this._offscreen, this);
     } catch {
       let evt = { detail : {hasOffScreenCanvas : false}}
       this.dispatchEvent(new CustomEvent("videoError", evt))
@@ -1617,7 +1617,7 @@ export class AnnotationCanvas extends HTMLElement
 
     // Re-initalize openGL component
     delete this._draw;
-    this._draw=new DrawGL(this._canvas);
+    this._draw=new DrawGL(this._canvas, this);
     this._dragHandler = new CanvasDrag(this,
                                        this._canvas,
                                        this._draw.displayToViewportScale.bind(this._draw),
