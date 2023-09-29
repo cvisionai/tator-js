@@ -40,7 +40,7 @@ async function uploadMedia(api, mediaType, file, opts) {
     };
     // Initiate transcode or save image.
     const ext = filename.split('.').pop();
-    const isVideo = ext.match(/(mp4|avi|3gp|ogg|wmv|webm|flv|mkv|mov|mts|m4v|mpg|mp2|mpeg|mpe|mpv|m4p|qt|swf|avchd)$/i);
+    const isVideo = ext.match(/(mp4|avi|3gp|ogg|wmv|webm|flv|mkv|mov|mts|m4v|mpg|mp2|mpeg|mpe|mpv|m4p|qt|swf|avchd|ts)$/i);
     if (isVideo) {
       spec.email_spec = emailSpec;
       return api.transcode(projectId, spec);
