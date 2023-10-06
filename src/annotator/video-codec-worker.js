@@ -773,7 +773,6 @@ class TatorVideoBuffer {
         const width = this_width;
         const height = this_height;
         const format = frame.format;
-        console.info(`Image Size = ${frame.codedHeight}x${frame.codedWidth} format=${frame.format}`);
         frame.close();
         this._frameReturn();
         postMessage({"type": "image",
