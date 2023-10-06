@@ -766,11 +766,14 @@ class TatorVideoBuffer {
         return;
       }
       let image = new Uint8Array(slot, CTRL_SIZE);
-      frame.copyTo(image, {rect:{width:frame.codedWidth, height:frame.codedHeight}}).then(() => {
+      const this_width = Math.min(this._trackWidth, frame.codedWidth);
+      const this_height = Math.min(this._trackHeight, frame.codedHeight);
+      frame.copyTo(image, {rect:{width:this_width, height:this_height}}).then(() => {
         //console.info(`${performance.now()}: ${this._name}@${this._current_cursor}: Publishing @ ${frame.timestamp/timeScale}-${(frame.timestamp+frameDelta)/timeScale} KFO=${this.keyframeOnly}`);
-        const width = frame.codedWidth;
-        const height = frame.codedHeight;
+        const width = this_width;
+        const height = this_height;
         const format = frame.format;
+        console.info(`Image Size = ${frame.codedHeight}x${frame.codedWidth} format=${frame.format}`);
         frame.close();
         this._frameReturn();
         postMessage({"type": "image",
