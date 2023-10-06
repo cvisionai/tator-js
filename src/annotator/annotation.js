@@ -1643,6 +1643,10 @@ export class AnnotationCanvas extends HTMLElement
    * Utilizes this._dims, this._gridRow, and this.heightPadObject
    */
   forceSizeChange() {
+    if (this._inhibitResize)
+    {
+      return true;
+    }
     const ratio=this._dims[0]/this._dims[1];
     var maxHeight;
     if (this._gridRows) {
@@ -1758,6 +1762,10 @@ export class AnnotationCanvas extends HTMLElement
     // Set up resize handler.
     window.addEventListener("resize", () => {
       clearTimeout(this._resizeTimer);
+      if (this._inhibitResize)
+      {
+        return true;
+      }
       this.forceSizeChange();
       this.dispatchEvent(new Event("canvasResized"));
       requestAnimationFrame(() => {
