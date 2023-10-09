@@ -72,6 +72,7 @@ export class EffectManager
     {
       window.cancelAnimationFrame(this._animator);
       this._animator = null;
+      this._idx = -1;
     }
     this._draw.beginDraw();
   }
