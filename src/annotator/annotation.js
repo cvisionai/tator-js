@@ -841,12 +841,34 @@ export class TextOverlay extends HTMLElement {
   }
 
   // Set the position of a div object
+  // Fence to be within the canvas area
   _setPosition(x,y,div)
   {
+    let convert = value => {return Number(value.replaceAll('px',''))};
     div.style.left =
       `${Math.round(x*this.clientWidth)}px`;
     div.style.top =
       `${Math.round(y*this.clientHeight)}px`;
+    const rect = this.getBoundingClientRect();
+    const rect_right = rect.x+rect.width;
+    const rect_bottom = rect.y+rect.height;
+
+    // Calculate left/right overages
+    const div_rect = div.getBoundingClientRect();
+    const right_side = div_rect.x+div_rect.width;
+    const left_overage = Math.min(0, rect_right-right_side);
+    const new_left_position = right_side + left_overage;
+    div.style.left = `${convert(div.style.left)+left_overage}px`;
+    const left_underage = Math.min(0,new_left_position-rect.x);
+    div.style.left = `${convert(div.style.left)+left_underage}px`;
+
+    // Calculate top/bottom overshoot
+    const bottom_side = div_rect.y+div_rect.height;
+    const bottom_overage = Math.min(0, rect_bottom-bottom_side);
+    const new_top_position = bottom_side + bottom_overage;
+    div.style.top = `${convert(div.style.top)+bottom_overage}px`;
+    const bottom_underage = Math.min(0,new_top_position-rect.y);
+    div.style.top = `${convert(div.style.top)+bottom_underage}px`;
   }
 
   modifyText(idx,delta,display)
