@@ -852,9 +852,18 @@ export class TextOverlay extends HTMLElement {
     const rect = this.getBoundingClientRect();
     const rect_right = rect.x+rect.width;
     const rect_bottom = rect.y+rect.height;
+    const rect_center = rect.x+(rect.width/2);
+
+    let div_rect = div.getBoundingClientRect();
+    if (div.opts._center == true)
+    {
+      const div_center = div_rect.x + (div_rect.width/2);
+      const off_center = rect_center-div_center;
+      div.style.left = `${convert(div.style.left)+off_center}px`;
+    }
 
     // Calculate left/right overages
-    const div_rect = div.getBoundingClientRect();
+    div_rect = div.getBoundingClientRect();
     const right_side = div_rect.x+div_rect.width;
     const left_overage = Math.min(0, rect_right-right_side);
     const new_left_position = right_side + left_overage;
@@ -885,7 +894,6 @@ export class TextOverlay extends HTMLElement {
 
     let text = this._texts[idx]
     let div = text.element;
-
     if (delta.style)
     {
       let style = delta.style;
@@ -893,7 +901,14 @@ export class TextOverlay extends HTMLElement {
       const keys = Object.getOwnPropertyNames(style);
       for (let key of keys)
       {
-        div.style[key] = style[key];
+        if (key[0] == '_')
+        {
+          div.opts[key] = style[key];
+        }
+        else
+        {
+          div.style[key] = style[key];
+        }
       }
     }
 
@@ -940,6 +955,7 @@ export class TextOverlay extends HTMLElement {
     div.style.userSelect = "none";
     div.style.position = "absolute";
     div.style.width = "fit-content";
+    div.opts = {}; //extended options
 
     let style = {"fontSize": "24pt",
                  "fontWeight": "bold",
@@ -950,7 +966,14 @@ export class TextOverlay extends HTMLElement {
       const keys = Object.getOwnPropertyNames(userStyle);
       for (let key of keys)
       {
-        style[key] = userStyle[key];
+        if (key[0] == '_')
+        {
+          div.opts[key] = style[key];
+        }
+        else
+        {
+          style[key] = userStyle[key];
+        }
       }
     }
 
@@ -1242,6 +1265,17 @@ export class AnnotationCanvas extends HTMLElement
           options[key] = overlay_config.options[key];
         }
       }
+
+      // Let style option of overlay config override default style
+      let user_style = {};
+      if (overlay_config.style)
+      {
+        user_style = overlay_config.style;
+      }
+      let time_style = {'_center': true,
+                        ...this.overlayTextStyle,
+                        ...user_style};
+      
       let update_function = (seconds) => {
         if (lastUpdate == seconds)
         {
@@ -1255,7 +1289,7 @@ export class AnnotationCanvas extends HTMLElement
         // Output to the text format specified by the media type schema
         let proposal_time = d.toLocaleString(locale, options);
         proposal_time = proposal_time.replace(", 24:", ", 00:");
-        this._textOverlay.modifyText(time_idx,{content: proposal_time, style: this.overlayTextStyle});
+        this._textOverlay.modifyText(time_idx,{content: proposal_time, style: time_style});
       };
 
       // Run first update
