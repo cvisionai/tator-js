@@ -918,6 +918,11 @@ export class TextOverlay extends HTMLElement {
       div.textContent = delta.content;
     }
 
+    if (delta.html)
+    {
+      div.innerHTML = delta.html;
+    }
+
     if (delta.x)
     {
       text.x = delta.x;
