@@ -3272,18 +3272,24 @@ export class AnnotationCanvas extends HTMLElement
 
   selectTrack(track, frameHint, skipGoToFrame)
   {
-    let frame = frameHint;
-    if (frame == undefined)
-    {
-      frame = track.segments[0][0];
-    }
-
     // Checking against the active track prevents infinite recursion cases due to refreshes
     // hitting the pause function and in turn hitting this method.
     // Checking the frame allows the track slider work in the entity browser.
-    if (track == this._activeTrack && frame == this._activeTrackFrame)
-    {
-      return;
+    if (this._activeTrack != null && track.id == this._activeTrack.id) {
+      if (frameHint != null) {
+        if (frameHint == this._activeTrackFrame) {
+          return;
+        }
+      }
+      else if (this._activeTrackFrame == this.currentFrame()) {
+        return;
+      }
+    }
+
+    let frame = frameHint;
+    if (frame == null) {
+      // New track, select the first detection in the track
+      frame = track.segments[0][0];
     }
 
     clearStatus();
