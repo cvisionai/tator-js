@@ -1127,7 +1127,7 @@ export class VideoCanvas extends AnnotationCanvas {
     this._dispFrame=this._draw.dispImage(hold);
 
     this.dispatchEvent(new CustomEvent("frameChange", {
-      detail: {frame: this._dispFrame},
+      detail: {frame: this._dispFrame, stateLabel: this._activeTrack?.attributes?.Label},
       composed: true
     }));
 
