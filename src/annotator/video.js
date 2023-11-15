@@ -1258,6 +1258,10 @@ export class VideoCanvas extends AnnotationCanvas {
     {
       return this._videoElement[this._scrub_idx].forTime(scrub_time, "scrub", direction, this._numSeconds);
     }
+    else if (bufferType == "utility")
+    {
+      return this._videoElement[this._scrub_idx].utilityBuffer;
+    }
     else
     {
       console.error(`Unknown buffer type requsted: ${bufferType}`);
