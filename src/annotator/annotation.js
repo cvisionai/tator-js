@@ -4385,6 +4385,7 @@ export class AnnotationCanvas extends HTMLElement
     {
       // On drag in ZOOM_ROI maintain aspect ratio
       // of the video.
+      const duration  = dragEvent.duration;
       if (dragEvent.altKey != true)
       {
         dragEvent = this.fixAspectOfDrag(dragEvent);
@@ -4395,21 +4396,29 @@ export class AnnotationCanvas extends HTMLElement
                 dragEvent.end);
         var boxInfo = dragToBox(dragEvent);
         var imageRoi=this.scaleToRelative(boxInfo);
-        that.setRoi(imageRoi[0],imageRoi[1],imageRoi[2],imageRoi[3]);
-        that.refresh();
-        updateStatus("Zoom Activated");
-        this._canvas.dispatchEvent(
-          new CustomEvent("drawComplete",
-                    {composed: true,
-                      detail: {metaMode: this._metaMode}
-                    }));
-        if (this._overrideState == MouseMode.NEW_POLY)
+        // Drag events are more intentional and disorienting so require a longer linger
+        if (duration > 100)
         {
+          that.setRoi(imageRoi[0],imageRoi[1],imageRoi[2],imageRoi[3]);
+          that.refresh();
+          updateStatus("Zoom Activated");
           this._canvas.dispatchEvent(
-                        new CustomEvent("modeChange",
-                                  {composed: true,
-                                    detail: {newMode: "new_poly", metaMode: this._metaMode}
-                                  }));
+            new CustomEvent("drawComplete",
+                      {composed: true,
+                        detail: {metaMode: this._metaMode}
+                      }));
+          if (this._overrideState == MouseMode.NEW_POLY)
+          {
+            this._canvas.dispatchEvent(
+                          new CustomEvent("modeChange",
+                                    {composed: true,
+                                      detail: {newMode: "new_poly", metaMode: this._metaMode}
+                                    }));
+          }
+        }
+        else
+        {
+          that.refresh();
         }
       }
       else
