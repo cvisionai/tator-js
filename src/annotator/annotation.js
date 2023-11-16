@@ -2369,7 +2369,7 @@ export class AnnotationCanvas extends HTMLElement
     }
 
     fill.color = drawColor;
-    if (meta.color_map)
+    if (meta.color_map && localizationMatchesActiveTrack != true)
     {
       if (localizationInTrack)
       {
