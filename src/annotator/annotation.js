@@ -4396,8 +4396,17 @@ export class AnnotationCanvas extends HTMLElement
                 dragEvent.end);
         var boxInfo = dragToBox(dragEvent);
         var imageRoi=this.scaleToRelative(boxInfo);
+        const zoom_factor = 1 / Math.min(imageRoi[2],imageRoi[3]);
+        const old_zoom_factor = 1 / Math.min(this._roi[2],this._roi[3]);
+        const relative_zoom_factor = zoom_factor / old_zoom_factor;
+
+        console.info(`ZOOM FACTOR = ${relative_zoom_factor} in ${duration}`);
         // Drag events are more intentional and disorienting so require a longer linger
-        if (duration > 100)
+        if (duration < 250 && relative_zoom_factor > 5)
+        {
+          that.refresh();
+        }
+        else if (duration > 100)
         {
           that.setRoi(imageRoi[0],imageRoi[1],imageRoi[2],imageRoi[3]);
           that.refresh();
