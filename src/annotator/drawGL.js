@@ -1385,10 +1385,10 @@ export class DrawGL
 
       gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
       gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER,
-                    new Uint16Array(bufferToUse.indices),
+                    new Uint32Array(bufferToUse.indices),
                     gl.STATIC_DRAW);
       // Draw into the multisampled buffer
-      gl.drawElements(this.gl.TRIANGLES, bufferToUse.indices.length, this.gl.UNSIGNED_SHORT, 0)
+      gl.drawElements(this.gl.TRIANGLES, bufferToUse.indices.length, this.gl.UNSIGNED_INT, 0)
 
       // Blit back to the draw buffer
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER,this.msaaFramebuffer);
