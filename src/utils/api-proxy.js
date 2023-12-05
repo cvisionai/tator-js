@@ -1,7 +1,7 @@
 async function waitForRefresh() {
   return new Promise((resolve, reject) => {
     const checkInterval = setInterval(() => {
-      const startedRefresh = localStorage.getItem(key);
+      const startedRefresh = localStorage.getItem("started_refresh");
       if (startedRefresh !== "true") {
         clearInterval(checkInterval);
         resolve(startedRefresh);
