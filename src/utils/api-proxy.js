@@ -1,8 +1,9 @@
+let startedRefresh = false;
+
 async function waitForRefresh() {
   return new Promise((resolve, reject) => {
     const checkInterval = setInterval(() => {
-      const startedRefresh = localStorage.getItem("started_refresh");
-      if (startedRefresh !== "true") {
+      if (!startedRefresh) {
         clearInterval(checkInterval);
         resolve(startedRefresh);
       }
@@ -23,8 +24,7 @@ async function getOrRefreshAccessToken() {
   }
   if (KEYCLOAK_ENABLED) {
     // Check to see if we are using a JWT
-    const startedRefresh = localStorage.getItem("started_refresh");
-    if (startedRefresh === "true") {
+    if (startedRefresh) {
       await waitForRefresh();
     }
     accessToken = localStorage.getItem("access_token");
@@ -38,37 +38,39 @@ async function getOrRefreshAccessToken() {
       const deltaMilliseconds = currentTime.getTime() - issueTime.getTime();
       const deltaSeconds = Math.floor(deltaMilliseconds / 1000);
       if (deltaSeconds > (expiresIn - 30)) {
-        
-        localStorage.setItem("started_refresh", "true");
+        console.log(`Starting token refresh, ${deltaSeconds} since last refresh...`);
+    
+        startedRefresh = true;    
         const data = await fetch('/refresh', {credentials: "same-origin"})
         .then((response) => {
           if (!response.ok) {
+            console.log(`Token refresh failed! Maybe your session ended.`);
+            startedRefresh = false;
             localStorage.removeItem("access_token");
             localStorage.removeItem("issue_time");
             localStorage.removeItem("expires_in");
             localStorage.removeItem("id_token");
-            localStorage.removeItem("started_refresh");
             throw new Error("Refresh failed!");
           }
-          localStorage.removeItem("started_refresh");
           return response.json();
         })
         .catch((error) => {
+          console.error(`Error refreshing token! ${error}`);
+          startedRefresh = false;
           localStorage.removeItem("access_token");
           localStorage.removeItem("issue_time");
           localStorage.removeItem("expires_in");
           localStorage.removeItem("id_token");
-          localStorage.removeItem("started_refresh");
-          console.error(`Error refreshing token! ${error}`);
           window.location.href = `/`;
         });
+        console.log(`Token refresh succeeded! New token is good for ${data.expires_in} seconds.`);
         issueTime = new Date();
+        startedRefresh = false;
         localStorage.setItem("access_token", data.access_token);
         localStorage.setItem("expires_in", data.expires_in);
         localStorage.setItem("id_token", data.id_token);
         localStorage.setItem("token_type", data.token_type);
         localStorage.setItem("issue_time", issueTime.toISOString());
-        localStorage.setItem("started_refresh", "false");
         accessToken = data.access_token;
       }
     }
