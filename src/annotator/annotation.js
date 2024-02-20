@@ -1230,22 +1230,59 @@ export class AnnotationCanvas extends HTMLElement
 
     if (mode == "datetime")
     {
-      let name = this._mediaInfo.name;
+      //  Important: Default to name-based sources for backwards compatibility!
+      /*
 
-      // Trim off ID if it is there
-      if (name[1] == '_')
+      // To source from the media name (default); name must be in 8601 format.
+      overlay_config =
       {
-        name = name.substr(2);
-      }
-      let start_time_8601 = name.substr(0,name.lastIndexOf('.')).replaceAll("_",':');
-      let timeZoneIncluded = start_time_8601.lastIndexOf('-') > 7;
-      if (timeZoneIncluded != true)
-      {
-        start_time_8601 += '-00:00'; // Assume zulu time
+        mode: 'datetime',
+        source: 'name'
       }
 
-      // Convert to seconds since epoch (browser local time)
-      let time_since_epoch = Date.parse(start_time_8601);
+      //  To source from a media attribute
+      overlay_config =
+      {
+        mode: 'datetime',
+        source: 'attribute',
+        key: 'start_time' //  Media attribute name containing 8601 formatted datetime
+      }
+      */
+      let time_since_epoch = 0;
+      if (overlay_config.source == 'name' || overlay_config.source == undefined)
+      {
+        let name = this._mediaInfo.name;
+
+        // Trim off ID if it is there
+        if (name[1] == '_')
+        {
+          name = name.substr(2);
+        }
+        let start_time_8601 = name.substr(0,name.lastIndexOf('.')).replaceAll("_",':');
+        let timeZoneIncluded = start_time_8601.lastIndexOf('-') > 7;
+        if (timeZoneIncluded != true)
+        {
+          start_time_8601 += '-00:00'; // Assume zulu time
+        }
+
+        // Convert to seconds since epoch (browser local time)
+        time_since_epoch = Date.parse(start_time_8601);
+      }
+      else if (overlay_config.source == 'attribute')
+      {
+        if (overlay_config.key == undefined)
+        {
+          console.error("Attribute source requires a key");
+          return;
+        }
+        let value = this._mediaInfo.attributes[overlay_config.key];
+        if (value == undefined)
+        {
+          console.error("Attribute key not found");
+          return;
+        }
+        time_since_epoch = Date.parse(value);
+      }
 
       if (isNaN(time_since_epoch) == true)
       {
