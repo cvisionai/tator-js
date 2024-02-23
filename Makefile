@@ -37,6 +37,7 @@ pkg/src/index.js: tator-openapi-schema.yaml $(shell find templates -name "*.must
                         hls.js@1.2.3 \
 												mp4box@0.4.9 \
 												earcut@^2.2.4 \
+												terser@^5.27.2 \
 												underwater-image-color-correction@1.0.3\
 												--save-dev
 
