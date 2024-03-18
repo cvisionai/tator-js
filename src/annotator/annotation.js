@@ -3324,7 +3324,7 @@ export class AnnotationCanvas extends HTMLElement
     }
 
     let frame = frameHint;
-    if (frame == null) {
+    if (frame == null && track.segments) {
       // New track, select the first detection in the track
       frame = track.segments[0][0];
     }
@@ -3361,7 +3361,7 @@ export class AnnotationCanvas extends HTMLElement
       });
     };
 
-    if (frame != this.currentFrame())
+    if (frame != null && frame != this.currentFrame())
     {
       if (!skipGoToFrame) {
         this.gotoFrame(frame).then(trackSelectFunctor);
