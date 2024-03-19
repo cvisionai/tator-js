@@ -24,6 +24,14 @@ async function keycloakCredentials() {
   };
 }
 
+function hasHost(url) {
+  if (typeof url === "string") {
+    return url.startsWith("http");
+  } else {
+    return true;
+  }
+}
+
 async function fetchCredentials(url, opts={}, retry=false, credsOnly=false) {
 
   // Get credentials
@@ -51,6 +59,11 @@ async function fetchCredentials(url, opts={}, retry=false, credsOnly=false) {
     newOpts.headers[credKey] = credentials.headers[credKey];
   } else {
     newOpts = {...credentials, ...opts};
+  }
+
+  // Set host in URL
+  if (window.BACKEND && !hasHost(url)) {
+    url = window.BACKEND + url;
   }
 
   // Do fetch
