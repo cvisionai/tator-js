@@ -4097,16 +4097,31 @@ export class AnnotationCanvas extends HTMLElement
       if (this._data._trackDb.has(localization.id))
       {
         const track = this._data._trackDb.get(localization.id);
+        const state_type = this._data._dataTypes[track.type];
+        let force_update = ()=>{
+          this.updateType(objDescription,
+              () => {
+                this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
+                               {composed: true,
+                                detail: {enabled: false}}));
+                  this.updateType(state_type, () => {
+                    this.refresh();
+                  });
+                }
+                )
+              };
         // Remove the old localization and add the new one
         const update_spec = {'localization_ids_add': ['$NEW_ID'], 'localization_ids_remove': [localization.id]};
         const reverse_spec = {'localization_ids_add': [localization.id], 'localization_ids_remove': ['$NEW_ID']};
-        const state_type = this._data._dataTypes[track.type];
         const forward_op = ["PATCH", "State", track.id, update_spec,  state_type];
         const backward_op = ["PATCH", "State", track.id, reverse_spec,  state_type];
         extra_fw_ops.push(forward_op);
+        extra_fw_ops.push(["FUNCTOR", force_update, {}, {},{}]);
         extra_bw_ops.push(backward_op);
         //  Instead of  rePATCHing  a  track-based  localization, we  prune the unintended  action
         extra_bw_ops.push(["DELETE", "Localization", '$NEW_ID', {'prune':1}, objDescription]);
+
+        extra_bw_ops.push(["FUNCTOR", force_update, {}, {},{}]);
         replace_bw_ops = true;
          // Get state type definition
         // TODO: Modify patch to defer  these ops and  calculate values.
