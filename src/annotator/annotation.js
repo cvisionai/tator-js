@@ -4067,7 +4067,7 @@ export class AnnotationCanvas extends HTMLElement
   }
 
   // TODO handle this all as a signal up in annotation-page
-  modifyLocalization(localization, frame)
+  async modifyLocalization(localization, frame)
   {
     if (localization == undefined)
     {
@@ -4091,7 +4091,28 @@ export class AnnotationCanvas extends HTMLElement
       {
         patchObj.frame = frame;
       }
-      this._undo.patch("Localization", localization.id, patchObj, objDescription);
+      let extra_fw_ops=[];
+      let extra_bw_ops=[];
+      let replace_bw_ops = false;
+      if (this._data._trackDb.has(localization.id))
+      {
+        const track = this._data._trackDb.get(localization.id);
+        // Remove the old localization and add the new one
+        const update_spec = {'localization_ids_add': ['$NEW_ID'], 'localization_ids_remove': [localization.id]};
+        const reverse_spec = {'localization_ids_add': [localization.id], 'localization_ids_remove': ['$NEW_ID']};
+        const state_type = this._data._dataTypes[track.type];
+        const forward_op = ["PATCH", "State", track.id, update_spec,  state_type];
+        const backward_op = ["PATCH", "State", track.id, reverse_spec,  state_type];
+        extra_fw_ops.push(forward_op);
+        extra_bw_ops.push(backward_op);
+        //  Instead of  rePATCHing  a  track-based  localization, we  prune the unintended  action
+        extra_bw_ops.push(["DELETE", "Localization", '$NEW_ID', {'prune':1}, objDescription]);
+        replace_bw_ops = true;
+         // Get state type definition
+        // TODO: Modify patch to defer  these ops and  calculate values.
+      }
+      let response = await this._undo.patch("Localization", localization.id, patchObj, objDescription,  extra_fw_ops,  extra_bw_ops, replace_bw_ops);
+      
     }
   }
 
