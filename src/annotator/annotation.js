@@ -4110,7 +4110,7 @@ export class AnnotationCanvas extends HTMLElement
                 }
                 )
               };
-        // Remove the old localization and add the new one
+        // Remove the old localization and add the new one to state
         const update_spec = {'localization_ids_add': ['$NEW_ID'], 'localization_ids_remove': [localization.id]};
         const reverse_spec = {'localization_ids_add': [localization.id], 'localization_ids_remove': ['$NEW_ID']};
         const forward_op = ["PATCH", "State", track.id, update_spec,  state_type];
@@ -4123,8 +4123,25 @@ export class AnnotationCanvas extends HTMLElement
 
         extra_bw_ops.push(["FUNCTOR", force_update, {}, {},{}]);
         replace_bw_ops = true;
-         // Get state type definition
-        // TODO: Modify patch to defer  these ops and  calculate values.
+      }
+      else
+      {
+        let force_update = ()=>{
+          this.updateType(objDescription,
+              () => {
+                  this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
+                                    {composed: true,
+                                      detail: {enabled: false}}));
+                  this.refresh();
+                }
+                )
+              };
+        // For non-track based localizations we also prune on undo to remove the unintended action
+        // from a record keeping PoV
+        extra_bw_ops.push(["DELETE", "Localization", '$NEW_ID', {'prune':1}, objDescription]);
+
+        extra_bw_ops.push(["FUNCTOR", force_update, {}, {},{}]);
+        replace_bw_ops = true;
       }
       let response = await this._undo.patch("Localization", localization.id, patchObj, objDescription,  extra_fw_ops,  extra_bw_ops, replace_bw_ops);
       
