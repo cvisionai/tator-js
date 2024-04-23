@@ -1,3 +1,5 @@
+import { fetchRetry } from "./fetch-retry.js";
+
 let startedRefresh = false;
 
 async function waitForRefresh() {
@@ -41,7 +43,7 @@ async function getOrRefreshAccessToken() {
         console.log(`Starting token refresh, ${deltaSeconds} since last refresh...`);
     
         startedRefresh = true;    
-        const data = await fetch('/refresh', {credentials: "same-origin"})
+        const data = await fetchRetry('/refresh', {credentials: "same-origin"})
         .then((response) => {
           if (!response.ok) {
             console.log(`Token refresh failed! Maybe your session ended.`);
