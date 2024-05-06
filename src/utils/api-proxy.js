@@ -63,6 +63,8 @@ async function getOrRefreshAccessToken() {
           localStorage.removeItem("issue_time");
           localStorage.removeItem("expires_in");
           localStorage.removeItem("id_token");
+          console.log(`Storing post login path as ${window.location.pathname}`);
+          localStorage.setItem("postLoginPath", window.location.pathname);
           window.location.href = `/`;
         });
         console.log(`Token refresh succeeded! New token is good for ${data.expires_in} seconds.`);
