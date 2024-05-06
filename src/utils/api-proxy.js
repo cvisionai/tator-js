@@ -63,8 +63,12 @@ async function getOrRefreshAccessToken() {
           localStorage.removeItem("issue_time");
           localStorage.removeItem("expires_in");
           localStorage.removeItem("id_token");
-          console.log(`Storing post login path as ${window.location.pathname}`);
+          const expiresAt = new Date();
+          expiresAt.setMinutes(expiresAt.getMinutes() + 10);
+          const expiresAtString = expiresAt.toString();
+          console.log(`Storing post login path as ${window.location.pathname}, expires at ${expiresAtString}`);
           localStorage.setItem("postLoginPath", window.location.pathname);
+          localStorage.setItem("postLoginPathExpiresAt", expiresAtString);
           window.location.href = `/`;
         });
         console.log(`Token refresh succeeded! New token is good for ${data.expires_in} seconds.`);
