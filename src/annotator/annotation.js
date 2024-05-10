@@ -4098,6 +4098,7 @@ export class AnnotationCanvas extends HTMLElement
       {
         const track = this._data._trackDb.get(localization.id);
         const state_type = this._data._dataTypes[track.type];
+        const original_object = {...localization};
         let force_update = ()=>{
           this.updateType(objDescription,
               () => {
@@ -4105,7 +4106,9 @@ export class AnnotationCanvas extends HTMLElement
                                {composed: true,
                                 detail: {enabled: false}}));
                   this.updateType(state_type, () => {
-                    this.refresh();
+                    this.refresh().then(() => {
+                      this.selectLocalization(original_object, true);
+                    });
                   });
                 }
                 )
@@ -4126,13 +4129,16 @@ export class AnnotationCanvas extends HTMLElement
       }
       else
       {
+        const original_object = {...localization};
         let force_update = ()=>{
           this.updateType(objDescription,
               () => {
                   this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
                                     {composed: true,
                                       detail: {enabled: false}}));
-                  this.refresh();
+                  this.refresh().then(() => {
+                    this.selectLocalization(original_object, true);
+                  });
                 }
                 )
               };
