@@ -4098,7 +4098,6 @@ export class AnnotationCanvas extends HTMLElement
       {
         const track = this._data._trackDb.get(localization.id);
         const state_type = this._data._dataTypes[track.type];
-        const original_object = {...localization};
         let force_update = (new_object)=>{
           this.updateType(objDescription,
               () => {
