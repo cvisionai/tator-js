@@ -4055,7 +4055,32 @@ export class AnnotationCanvas extends HTMLElement
       const track = this._data._trackDb.get(localization.id);
       const state_type = this._data._dataTypes[track.type];
 
-      let force_update = (new_object)=>{
+      // Make a new state crossing into the new version
+      // hot wire it into the existing undo action to support undoing the clone
+      let make_new_state = async (new_object)=>{
+
+        // Make a new state
+        let newObject = {};
+        newObject.parent = track.id;
+        newObject.attributes = { ...track.attributes };
+        newObject.version = this._data.getVersion().id;
+        newObject.type = Number(track.type.split("_")[1]);
+        newObject.media_ids = track.media;
+        newObject.elemental_id = track.elemental_id;
+        newObject.frame = track.frame;
+
+        let localizations = [...track.localizations];
+        localizations.push(new_object.id);
+        // remove the old localization
+        localizations = localizations.filter(local => local !== localization.id);
+        newObject.localization_ids = localizations;
+        let resp = await fetchCredentials(`/rest/States/${state_type.project}`, {method: 'POST', body:JSON.stringify(newObject)}, true);
+        let json = await resp.json();
+
+        // Add prune of state to undo buffer
+        const index = this._undo._forwardOps.length - 1;
+        this._undo._backwardOps[index].push(["DELETE", "State", json.id[0], {'prune':1}, state_type]);
+
         this.updateType(objDescription,
             () => {
               this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
@@ -4063,6 +4088,7 @@ export class AnnotationCanvas extends HTMLElement
                               detail: {enabled: false}}));
                 this.updateType(state_type, () => {
                   this.refresh().then(() => {
+                    new_object.type = objDescription.id;
                     this.selectLocalization(new_object, true);
                     this.dispatchEvent(new CustomEvent("select", {
                       detail: new_object,
@@ -4073,14 +4099,7 @@ export class AnnotationCanvas extends HTMLElement
               }
               )
             };
-      
-      const update_spec = {'localization_ids_add': ['$NEW_ID'], 'localization_ids_remove': [localization.id]};
-      const reverse_spec = {'localization_ids_add': [localization.id], 'localization_ids_remove': ['$NEW_ID']};
-      const forward_op = ["PATCH", "State", track.id, update_spec,  state_type];
-      const backward_op = ["PATCH", "State", track.id, reverse_spec,  state_type];
-      fw_ops.push(forward_op);
-      fw_ops.push(["FUNCTOR", force_update, {}, {},{}]);
-      bw_ops.push(backward_op);
+      fw_ops.push(["FUNCTOR", make_new_state, {}, {},{}]);
     }
     
 
