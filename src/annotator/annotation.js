@@ -4046,7 +4046,45 @@ export class AnnotationCanvas extends HTMLElement
     this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
                                        {composed: true,
                                         detail: {enabled: true}}));
-    this._undo.post("Localizations", newObject, objDescription, {'prune':1}).then(() => {
+
+    let fw_ops = [];
+    let bw_ops = [];
+    bw_ops.push(["DELETE", "Localization", '$NEW_ID', {'prune':1}, objDescription]);
+    if (this._data._trackDb.has(localization.id))
+    {
+      const track = this._data._trackDb.get(localization.id);
+      const state_type = this._data._dataTypes[track.type];
+
+      let force_update = (new_object)=>{
+        this.updateType(objDescription,
+            () => {
+              this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
+                             {composed: true,
+                              detail: {enabled: false}}));
+                this.updateType(state_type, () => {
+                  this.refresh().then(() => {
+                    this.selectLocalization(new_object, true);
+                    this.dispatchEvent(new CustomEvent("select", {
+                      detail: new_object,
+                      composed: true,
+                    }));
+                  });
+                });
+              }
+              )
+            };
+      
+      const update_spec = {'localization_ids_add': ['$NEW_ID'], 'localization_ids_remove': [localization.id]};
+      const reverse_spec = {'localization_ids_add': [localization.id], 'localization_ids_remove': ['$NEW_ID']};
+      const forward_op = ["PATCH", "State", track.id, update_spec,  state_type];
+      const backward_op = ["PATCH", "State", track.id, reverse_spec,  state_type];
+      fw_ops.push(forward_op);
+      fw_ops.push(["FUNCTOR", force_update, {}, {},{}]);
+      bw_ops.push(backward_op);
+    }
+    
+
+    this._undo.post("Localizations", newObject, objDescription, fw_ops, bw_ops, true).then(() => {
       this.updateType(objDescription,() => {
         // Find the localization we just made and select it
         let localizations = this._framedData.get(newObject.frame).get(original_meta);
