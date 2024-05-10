@@ -4041,6 +4041,7 @@ export class AnnotationCanvas extends HTMLElement
     newObject.type = Number(localization.type.split("_")[1]);
     newObject.media_id = localization.media;
     newObject.frame = localization.frame;
+    newObject.elemental_id = localization.elemental_id;
     console.info(newObject);
     this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
                                        {composed: true,
