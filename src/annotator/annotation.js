@@ -3919,20 +3919,20 @@ export class AnnotationCanvas extends HTMLElement
       this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
                                        {composed: true,
                                         detail: {enabled: true}}));
-      fetchCredentials(`/rest/Localization/${localization.id}`, {method: "DELETE"}, true)
-                       .then(() => {
-                       this.updateType(objDescription,() => {
-                         this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
-                                            {composed: true,
-                                             detail: {enabled: false}}));
-                      this.refresh();
-                    });
-
-                  });
+      this._undo.delete_metadata("Localization", localization, objDescription).then(() => 
+      {
+        this.updateType(objDescription,() => 
+        {
+                this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
+                                  {composed: true,
+                                   detail: {enabled: false}}));
+                this.refresh();
+        });
+      });
     }
     else
     {
-      this._undo.del("Localization", localization.id, objDescription).then(() => {
+      this._undo.delete_metadata("Localization", localization, objDescription).then(() => {
         this.refresh(); //Remove ghosts
       })
     }
