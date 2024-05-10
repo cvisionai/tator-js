@@ -4099,7 +4099,7 @@ export class AnnotationCanvas extends HTMLElement
         const track = this._data._trackDb.get(localization.id);
         const state_type = this._data._dataTypes[track.type];
         const original_object = {...localization};
-        let force_update = ()=>{
+        let force_update = (new_object)=>{
           this.updateType(objDescription,
               () => {
                 this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
@@ -4107,7 +4107,7 @@ export class AnnotationCanvas extends HTMLElement
                                 detail: {enabled: false}}));
                   this.updateType(state_type, () => {
                     this.refresh().then(() => {
-                      this.selectLocalization(original_object, true);
+                      this.selectLocalization(new_object, true);
                     });
                   });
                 }
@@ -4130,6 +4130,13 @@ export class AnnotationCanvas extends HTMLElement
       else
       {
         const original_object = {...localization};
+        let select_new_object = (new_obj) => {
+          this.selectLocalization(new_obj, true);
+          this.dispatchEvent(new CustomEvent("select", {
+            detail: localization,
+            composed: true,
+          }));
+        }
         let force_update = ()=>{
           this.updateType(objDescription,
               () => {
@@ -4142,6 +4149,8 @@ export class AnnotationCanvas extends HTMLElement
                 }
                 )
               };
+
+        extra_fw_ops.push(["FUNCTOR", select_new_object, {},{},{}]);
         // For non-track based localizations we also prune on undo to remove the unintended action
         // from a record keeping PoV
         extra_bw_ops.push(["DELETE", "Localization", '$NEW_ID', {'prune':1}, objDescription]);
