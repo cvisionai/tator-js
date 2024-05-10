@@ -4045,9 +4045,7 @@ export class AnnotationCanvas extends HTMLElement
     this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
                                        {composed: true,
                                         detail: {enabled: true}}));
-    let request_obj = {method: "POST",
-                       body: JSON.stringify([newObject])};
-    fetchCredentials(`/rest/Localizations/${localization.project}`, request_obj, true).then(() => {
+    this._undo.post("Localizations", newObject, objDescription, {'prune':1}).then(() => {
       this.updateType(objDescription,() => {
         // Find the localization we just made and select it
         let localizations = this._framedData.get(newObject.frame).get(original_meta);
