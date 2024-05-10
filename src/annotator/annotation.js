@@ -4107,6 +4107,10 @@ export class AnnotationCanvas extends HTMLElement
                   this.updateType(state_type, () => {
                     this.refresh().then(() => {
                       this.selectLocalization(new_object, true);
+                      this.dispatchEvent(new CustomEvent("select", {
+                        detail: new_object,
+                        composed: true,
+                      }));
                     });
                   });
                 }
