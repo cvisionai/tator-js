@@ -1,5 +1,3 @@
-import { guiFPS } from "./video";
-
 /// Used to determine system fps and calculate playback
 /// schedules based on a given video fps
 

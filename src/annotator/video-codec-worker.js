@@ -1,7 +1,7 @@
 
 import * as MP4Box from "./mp4box.all.js";
 import { CTRL_SIZE, VideoBufferManager } from "./video-buffer-manager.js";
-import { TatorTimeRanges } from "./video-codec.js";
+import { TatorTimeRanges } from "./time-ranges";
 
 const MAX_DECODED_FRAMES_PER_DECODER = 8;
 

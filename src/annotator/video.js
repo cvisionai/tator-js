@@ -7,6 +7,7 @@ import { MotionComp } from "./motion_comp";
 import { ConcatDownloadManager } from "./concat_download_manager.js";
 import { EffectManager } from "./video-effects.js";
 import { TatorSimpleVideo } from "./video-simple.js";
+import { guiFPS } from "./guiFPS.js";
 
 // Video export class handles interactions between HTML presentation layer and the
 // javascript application.
@@ -85,10 +86,6 @@ import { TatorSimpleVideo } from "./video-simple.js";
 // - rateChange : emitted when the video playback rate changes
 //        detail : {rate: <new_rate>}
 // - playbackStalled : emitted when playback stalls
-
-// Constrain the video display FPS to not allow dropped frames during playback
-//
-export var guiFPS = 60;
 
 var Direction = { BACKWARDS:-1, STOPPED: 0, FORWARD: 1};
 var State = {PLAYING: 0, IDLE: 1, LOADING: -1};
