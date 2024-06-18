@@ -101,6 +101,7 @@ export class VideoCanvas extends AnnotationCanvas {
 
     // Set global variable to find us
     window.tator_video = this;
+    this._overrideFrame = {};
     this._localMode = false;
     this._forceCompat = false;
     this._ready = false;
@@ -1357,14 +1358,26 @@ export class VideoCanvas extends AnnotationCanvas {
     //
     // Otherwise, utilize the requested buffer.
     var video;
-    if (this._scrub_idx == this._seek_idx) {
-      video = this.videoBuffer(frame, "scrub");
-      if (video == null) {
-        video = this.videoBuffer(frame, "seek");
-      }
+    if (this._overrideFrame.frame == frame || this._overrideFrame.frame == -1)
+    {
+      let image = this._overrideFrame.bitmap;
+      return new Promise((resolve) => {
+        callback = callback.bind(this);
+        callback(frame, image, image.width, image.height);
+        resolve();
+      });
     }
-    else {
-      video = this.videoBuffer(frame, bufferType);
+    else
+    {
+      if (this._scrub_idx == this._seek_idx) {
+        video = this.videoBuffer(frame, "scrub");
+        if (video == null) {
+          video = this.videoBuffer(frame, "seek");
+        }
+      }
+      else {
+        video = this.videoBuffer(frame, bufferType);
+      }
     }
 
     // Only support seeking if we are stopped (i.e. not playing) and we are not
