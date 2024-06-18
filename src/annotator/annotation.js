@@ -5322,7 +5322,7 @@ export class AnnotationCanvas extends HTMLElement
 
   }
 
-  underwaterCorrection(skip_shader)
+  async underwaterCorrection(skip_shader)
   {
     const begin = performance.now();
     // TODO this actually lets us due the entire GOP (this is in NV12 off the decoder!)
