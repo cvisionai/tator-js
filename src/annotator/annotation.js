@@ -5322,6 +5322,18 @@ export class AnnotationCanvas extends HTMLElement
 
   }
 
+  async getImageBitmap(localizations) {
+    const width = this._offscreen.width;
+    const height = this._offscreen.height;
+
+    this._offscreenDraw.clearRect(0,0,width,height);
+    this._offscreenDraw.dispImage(true, !localizations);
+
+
+    return await this._offscreen.transferToImageBitmap();
+
+  }
+
   async underwaterCorrection(skip_shader)
   {
     const begin = performance.now();
