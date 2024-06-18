@@ -5384,7 +5384,15 @@ export class AnnotationCanvas extends HTMLElement
     this.drawFrame(this.currentFrame(), imageData, this._dims[0], this._dims[1]);
     this._effectManager.clear();
     this._draw.disableCFM();
+
+    // Convert the offscreen canvas to an ImageBitmap
+    let bitmap = await this.getImageBitmap(false);
+
+    // Now disable the CFM matrix
     this._offscreenDraw.disableCFM();
+
+    // Set the override frame up
+    this._overrideFrame = {'frame': this.currentFrame(), 'bitmap': bitmap};
     console.info(`Underwater correction finished in ${performance.now()-begin} ms`);
     document.body.style.cursor = null;
   }
