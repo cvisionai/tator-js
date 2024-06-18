@@ -5364,12 +5364,15 @@ export class AnnotationCanvas extends HTMLElement
     {
       console.info("Using OpenGL accelerated CFM")
       this._draw.setCFM(filter);
+      this._offscreenDraw.setCFM(filter);
     }
 
     // update display, this function takes an ImageData too!
-    this.drawFrame(this.currentFrame(), imageData, this._dims[0], this._dims[1], true);
+    // Update off-screen so we can capture it
+    this.drawFrame(this.currentFrame(), imageData, this._dims[0], this._dims[1]);
     this._effectManager.clear();
     this._draw.disableCFM();
+    this._offscreenDraw.disableCFM();
     console.info(`Underwater correction finished in ${performance.now()-begin} ms`);
     document.body.style.cursor = null;
   }
