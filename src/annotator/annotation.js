@@ -1697,7 +1697,8 @@ export class AnnotationCanvas extends HTMLElement
     this._dragHandler = new CanvasDrag(this,
                                        this._canvas,
                                        this._draw.displayToViewportScale.bind(this._draw),
-                                       this.dragHandler.bind(this));
+                                       this.dragHandler.bind(this),
+                                       this.mouseUpHandler.bind(this));
 
     // Set the canvas dimensions up correctly
     this._draw.resizeViewport(this._dims[0], this._dims[1]);
