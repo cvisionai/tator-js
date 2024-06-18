@@ -86,6 +86,12 @@ import { guiFPS } from "./guiFPS.js";
 // - rateChange : emitted when the video playback rate changes
 //        detail : {rate: <new_rate>}
 // - playbackStalled : emitted when playback stalls
+//
+// Overiding frame content
+// One can set video._overrideFrame to {'frame': 0, 'bitmap': someImageBitmap} to override
+// frame content at frame 0. If frame -1 is supplied, all frames are overriden with 'someImageBitmap'
+// until the frame override is removed.
+// An imageBitmap can be made from a offscreen canvas via canvas.transferToImageBitmap()
 
 var Direction = { BACKWARDS:-1, STOPPED: 0, FORWARD: 1};
 var State = {PLAYING: 0, IDLE: 1, LOADING: -1};
