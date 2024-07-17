@@ -2062,7 +2062,8 @@ export class AnnotationCanvas extends HTMLElement
     if (event.ctrlKey && event.code == "Digit7")
     {
       setTimeout(()=>{
-      this.refresh(true);
+        this._overrideFrame = {};
+        this.refresh(true);
       },0);
       return;
     }
