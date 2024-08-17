@@ -8,8 +8,8 @@
 //        operations.
 
 
-import { CTRL_SIZE } from "./video-buffer-manager";
-import { TatorTimeRanges } from "./time-ranges";
+import { CTRL_SIZE } from "./video-buffer-manager.js";
+import { TatorTimeRanges } from "./time-ranges.js";
 
 function concatArrayBuffers(buffer1, buffer2) {
   // Create views for the two ArrayBuffer objects

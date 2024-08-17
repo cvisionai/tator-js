@@ -1,6 +1,6 @@
 import { uploadFile } from "./upload-file.js";
 import { md5sum } from "./md5sum.js";
-import { v1 as uuidv1 } from "uuid";
+import { v1 as uuidv1 } from 'https://cdn.jsdelivr.net/npm/uuid@10.0.0/+esm'
 
 async function uploadMedia(api, mediaType, file, opts) {
   const mediaId = opts.mediaId || null;

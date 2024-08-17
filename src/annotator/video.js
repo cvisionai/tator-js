@@ -2,8 +2,8 @@ import { AnnotationCanvas } from "./annotation.js";
 import { DownloadManager } from "./download_manager.js"
 import { TatorVideoDecoder} from "./video-codec.js";
 import { fetchCredentials } from "../utils/fetch-credentials.js";
-import { PeriodicTaskProfiler } from "./periodic_task_profiler";
-import { MotionComp } from "./motion_comp";
+import { PeriodicTaskProfiler } from "./periodic_task_profiler.js";
+import { MotionComp } from "./motion_comp.js";
 import { ConcatDownloadManager } from "./concat_download_manager.js";
 import { EffectManager } from "./video-effects.js";
 import { TatorSimpleVideo } from "./video-simple.js";

@@ -29,7 +29,7 @@
 import { FrameBuffer } from "./FrameBuffer.js";
 import { color } from "./drawGL_colors.js";
 import {triangulate} from "./tesselator.js";
-import * as earcut from "earcut"
+import * as earcut from 'https://cdn.jsdelivr.net/npm/earcut@3.0.0/+esm';
 
 const vsSource = `#version 300 es
     in vec2 vertex;

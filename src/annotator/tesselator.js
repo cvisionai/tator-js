@@ -1,4 +1,4 @@
-import libtess from 'libtess';
+import libtess from 'https://cdn.jsdelivr.net/npm/libtess@1.2.2/+esm';
 
 var tessy = (function initTesselator() {
   // function called for each vertex of tesselator output

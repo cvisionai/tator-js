@@ -7,7 +7,7 @@
 // @TODO: Supply a 'cv2.VideoDecode.read()' type interface for client-side decode
 //        operations.
 
-import Hls from "hls.js";
+import Hls from 'https://cdn.jsdelivr.net/npm/hls.js@1.5.14/+esm';
 
 class SimpleVideoWrapper {
   constructor(parent, name, path)

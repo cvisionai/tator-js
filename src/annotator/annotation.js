@@ -3,7 +3,7 @@ import { fetchCredentials } from "../utils/fetch-credentials.js";
 import { DrawGL } from "./drawGL.js";
 import { color } from "./drawGL_colors.js";
 import { Utilities } from "../utils/utilities.js";
-const getColorFilterMatrix = require('underwater-image-color-correction');
+import getColorFilterMatrix from 'https://cdn.jsdelivr.net/npm/underwater-image-color-correction@1.0.3/+esm';
 
 
 var statusAnimator=null;
