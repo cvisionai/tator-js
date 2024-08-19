@@ -1123,7 +1123,6 @@ class TatorVideoBuffer {
 var ref = null;
 onmessage = function(e)
 {
-  console.log(`CODEC WORKER RECEIVED MESSAGE ${e.data.type}`);
   const msg = e.data;
   if (msg.type == "init")
   {
