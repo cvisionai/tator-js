@@ -41,7 +41,7 @@ class TatorVideoManager {
     this._time_ranges = new TatorTimeRanges();
 
     // TODO: This worker is really an mp4 demuxer, should rename
-    this._codec_worker = new Worker(new URL("./video-codec-worker.js", import.meta.url),
+    this._codec_worker = new Worker("/static/video-codec-worker.js",
                                     {'name': `${name} Worker`, 'type': 'module'});
     this._codec_worker.onmessage = this._on_message.bind(this);
 

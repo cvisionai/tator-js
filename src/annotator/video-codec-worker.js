@@ -1,7 +1,7 @@
 
-import * as MP4Box from "./mp4box.all.js";
+import mp4box from 'https://cdn.jsdelivr.net/npm/mp4box@0.5.2/+esm';
 import { CTRL_SIZE, VideoBufferManager } from "./video-buffer-manager.js";
-import { TatorTimeRanges } from "./time-ranges";
+import { TatorTimeRanges } from "./time-ranges.js";
 
 const MAX_DECODED_FRAMES_PER_DECODER = 8;
 
@@ -918,7 +918,7 @@ class TatorVideoBuffer {
 
   _setupFile(timestampOffset)
   {
-    let mp4File = MP4Box.createFile();
+    let mp4File = mp4box.createFile();
     mp4File.onError = this._mp4OnError.bind(this);
     mp4File.onSamples = this._mp4Samples.bind(this);
     this._keyframeMap.set(timestampOffset, new KeyHeap());
@@ -985,7 +985,7 @@ class TatorVideoBuffer {
     let seekDecoder = new VideoDecoder({
       output: this._frameReady.bind(this),
       error: this._frameError.bind(this)});
-    let tempFile = MP4Box.createFile();
+    let tempFile = mp4box.createFile();
     tempFile.onError = this._mp4OnError.bind(this);
     tempFile.onSamples = (track, user, samples) => {
 
@@ -1123,6 +1123,7 @@ class TatorVideoBuffer {
 var ref = null;
 onmessage = function(e)
 {
+  console.log(`CODEC WORKER RECEIVED MESSAGE ${e.data.type}`);
   const msg = e.data;
   if (msg.type == "init")
   {
