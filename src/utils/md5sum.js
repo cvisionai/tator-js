@@ -1,5 +1,5 @@
 // Import sparkmd5.
-import SparkMD5 from 'https://cdn.jsdelivr.net/npm/spark-md5@3.0.2/+esm';
+import SparkMD5 from 'spark-md5';
 
 // Calculates md5 hash.
 function md5sum(file) {
