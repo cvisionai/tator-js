@@ -1,4 +1,5 @@
 import { fetchRetry } from "./fetch-retry.js";
+import { fetchCredentials } from "./fetch-credentials.js";
 
 function makeReaderWithFixedChunks(reader, chunkSize) {
   let buffer;
@@ -33,7 +34,7 @@ function makeReaderWithFixedChunks(reader, chunkSize) {
   return stream.getReader();
 }
 
-function uploadMulti(api, project, stream, size, info, numChunks, chunkSize, progressCallback, abortController) {
+function uploadMulti(project, stream, size, info, numChunks, chunkSize, progressCallback, abortController) {
   const gcpUpload = info.upload_id === info.urls[0];
   let promise = new Promise(resolve => resolve(true));
   const reader = makeReaderWithFixedChunks(stream.getReader(), chunkSize);
@@ -71,12 +72,16 @@ function uploadMulti(api, project, stream, size, info, numChunks, chunkSize, pro
     });
   }
   promise = promise.then(parts => {
-    return api.completeUpload(project, {
-      key: info.key,
-      upload_id: info.upload_id,
-      parts: parts,
+    return fetchCredentials(`/rest/UploadCompletion/${project}`, {
+      method: "POST",
+      body: JSON.stringify({
+        key: info.key,
+        upload_id: info.upload_id,
+        parts: parts,
+      }),
     });
   })
+  .then(response => response.json())
   .then(() => {return info.key;});
   return promise;
 }
@@ -100,11 +105,11 @@ async function uploadSingle(stream, size, info, progressCallback, abortControlle
   });
 }
 
-async function uploadFile(api, project, stream, size, opts={}) {
+async function uploadFile(project, stream, size, opts={}) {
   // Get options
   const mediaId = opts.mediaId || null;
   const filename = opts.filename || null;
-  const chunkSize = opts.chunkSize || 1024*1024*10;
+  let chunkSize = opts.chunkSize || 1024*1024*10;
   const fileId = opts.fileId || null;
   const progressCallback = opts.progressCallback || null;
   const abortController = opts.abortController || new AbortController();
@@ -122,22 +127,23 @@ async function uploadFile(api, project, stream, size, opts={}) {
 
   // Get upload info.
   const numChunks = Math.ceil(size / chunkSize);
-  const uploadParams = {numParts: numChunks};
+  let url = `/rest/UploadInfo/${project}?num_parts=${numChunks}`;
   if (mediaId != null) {
-    uploadParams.mediaId = mediaId;
+    url += `&media_id=${mediaId}`;
   }
   if (fileId != null) {
-    uploadParams.fileId = fileId;
+    url += `&file_id=${fileId}`;
   }
   if (filename != null) {
-    uploadParams.filename = filename;
+    url += `&filename=${filename}`;
   }
-  return api.getUploadInfo(project, uploadParams)
+  return fetchCredentials(url)
+  .then(response => response.json())
   .then(info => {
     let promise;
     if (numChunks > 1) {
       promise = uploadMulti(
-        api, project, stream, size, info, numChunks,
+        project, stream, size, info, numChunks,
         chunkSize, progressCallback, abortController,
       );
     } else {

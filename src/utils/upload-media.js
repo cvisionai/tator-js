@@ -1,8 +1,9 @@
 import { uploadFile } from "./upload-file.js";
+import { fetchCredentials } from "./fetch-credentials.js";
 import { md5sum } from "./md5sum.js";
-import { v1 as uuidv1 } from 'https://cdn.jsdelivr.net/npm/uuid@10.0.0/+esm'
+import { v1 as uuidv1 } from 'uuid';
 
-async function uploadMedia(api, mediaType, file, opts) {
+async function uploadMedia(mediaType, file, opts) {
   const mediaId = opts.mediaId || null;
   const filename = opts.filename || file.name;
   const chunkSize = opts.chunkSize || 1024*1024*10;
@@ -16,11 +17,14 @@ async function uploadMedia(api, mediaType, file, opts) {
   let md5 = opts.md5 || md5sum(file);
 
   const projectId = mediaType.project;
-  return uploadFile(api, projectId, file.stream(), file.size, opts)
-  .then(key => api.getDownloadInfo(projectId, {
-      keys: [key],
-      expiration: 86400
-    }))
+  return uploadFile(projectId, file.stream(), file.size, opts)
+  .then(key => fetchCredentials(
+      `/rest/DownloadInfo/${projectId}?expiration=604800`, {
+      method: 'POST',
+      body: JSON.stringify({
+        keys: [key],
+      })}))
+  .then(response => response.json())
   .then(async info => {
     const url = info[0].url;
     if (md5 instanceof Promise) {
@@ -43,9 +47,15 @@ async function uploadMedia(api, mediaType, file, opts) {
     const isVideo = ext.match(/(mp4|avi|3gp|ogg|wmv|webm|flv|mkv|mov|mts|m4v|mpg|mp2|mpeg|mpe|mpv|m4p|qt|swf|avchd|ts)$/i);
     if (isVideo) {
       spec.email_spec = emailSpec;
-      return api.transcode(projectId, spec);
+      return fetchCredentials(`/rest/Transcodes/${projectId}`, {
+        method: "POST",
+        body: JSON.stringify(spec)
+      }).then(response => response.json());
     } else {
-      return api.createMediaList(projectId, [spec]);
+      return fetchCredentials(`/rest/Medias/${projectId}`, {
+        method: "POST",
+        body: JSON.stringify([spec]),
+      }).then(response => response.json());
     }
   });
 }
