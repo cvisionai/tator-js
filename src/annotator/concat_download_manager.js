@@ -17,7 +17,7 @@ export class ConcatDownloadManager
       // Could handle math for different FPSes per video
       const timestampOffset = insertion_detail[idx].timestampOffset;
       const webWorkerName = `MEDIA_${media_objects[idx].id}_TS_${timestampOffset}`;
-      let this_worker = new Worker("/static/vid_downloader.js",
+      let this_worker = new Worker(`${STATIC_PATH}/vid_downloader.js`,
                                    {'name': webWorkerName});
       this._fps = media_objects[0].fps;
 

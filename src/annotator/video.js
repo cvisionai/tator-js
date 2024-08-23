@@ -96,8 +96,6 @@ import { guiFPS } from "./guiFPS.js";
 var Direction = { BACKWARDS:-1, STOPPED: 0, FORWARD: 1};
 var State = {PLAYING: 0, IDLE: 1, LOADING: -1};
 
-var src_path="/static/js/annotator/";
-
 export var RATE_CUTOFF_FOR_ON_DEMAND = 4.0;
 const RATE_CUTOFF_FOR_AUDIO = 4.0;
 
