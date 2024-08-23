@@ -1,5 +1,5 @@
 
-import mp4box from 'https://cdn.jsdelivr.net/npm/mp4box@0.5.2/+esm';
+import mp4box from './mp4box.mjs';
 import { CTRL_SIZE, VideoBufferManager } from "./video-buffer-manager.js";
 import { TatorTimeRanges } from "./time-ranges.js";
 
@@ -1193,3 +1193,4 @@ onmessage = function(e)
     ref.frameIncrement = msg.value;
   }
 }
+
