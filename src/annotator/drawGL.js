@@ -29,7 +29,7 @@
 import { FrameBuffer } from "./FrameBuffer.js";
 import { color } from "./drawGL_colors.js";
 import {triangulate} from "./tesselator.js";
-import * as earcut from 'earcut';
+import 'earcut';
 
 const vsSource = `#version 300 es
     in vec2 vertex;
@@ -1296,7 +1296,7 @@ export class DrawGL
     }
     else
     {
-      let indices = earcut(contour);
+      let indices = earcut.default(contour);
       if (this.drawBuffer && 'vertices' in this.drawBuffer)
       {
         let currentVertices = this.drawBuffer.vertices.length/2;
