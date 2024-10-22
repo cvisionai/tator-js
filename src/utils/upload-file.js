@@ -36,6 +36,7 @@ function makeReaderWithFixedChunks(reader, chunkSize) {
 
 function uploadMulti(project, stream, size, info, numChunks, chunkSize, progressCallback, abortController) {
   const gcpUpload = info.upload_id === info.urls[0];
+  const msUpload = info.urls[0].includes("blob.core.windows.net");
   let promise = new Promise(resolve => resolve(true));
   const reader = makeReaderWithFixedChunks(stream.getReader(), chunkSize);
   const parts = [];
@@ -60,6 +61,12 @@ function uploadMulti(project, stream, size, info, numChunks, chunkSize, progress
         };
         startByte += contentLength;
       }
+      if (msUpload) {
+        options.headers = {
+          "x-ms-blob-type": "BlockBlob",
+        };
+      }
+      
       return fetchRetry(info.urls[idx], options);
     })
     .then(response => {
@@ -88,14 +95,21 @@ function uploadMulti(project, stream, size, info, numChunks, chunkSize, progress
 
 // Uploads using a single request.
 async function uploadSingle(stream, size, info, progressCallback, abortController) {
+  const msUpload = info.urls[0].includes("blob.core.windows.net");
   const reader = makeReaderWithFixedChunks(stream.getReader(), size);
+  const options = {
+    method: "PUT",
+    credentials: "omit",
+    body: status.value,
+    signal: abortController.signal,
+  }
+  if (msUpload) {
+    options.headers = {
+      "x-ms-blob-type": "BlockBlob",
+    };
+  }
   return reader.read().then(status => {
-    return fetchRetry(info.urls[0], {
-      method: "PUT",
-      credentials: "omit",
-      body: status.value,
-      signal: abortController.signal,
-    })
+    return fetchRetry(info.urls[0], options);
   })
   .then(() => {
     if (progressCallback !== null) {
