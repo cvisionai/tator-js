@@ -36,7 +36,6 @@ function makeReaderWithFixedChunks(reader, chunkSize) {
 
 function uploadMulti(project, stream, size, info, numChunks, chunkSize, progressCallback, abortController) {
   const gcpUpload = info.upload_id === info.urls[0];
-  const msUpload = info.urls[0].includes("blob.core.windows.net");
   let promise = new Promise(resolve => resolve(true));
   const reader = makeReaderWithFixedChunks(stream.getReader(), chunkSize);
   const parts = [];
@@ -60,11 +59,6 @@ function uploadMulti(project, stream, size, info, numChunks, chunkSize, progress
           "Content-Range": "bytes " + startByte + "-" + stopByte + "/" + size,
         };
         startByte += contentLength;
-      }
-      if (msUpload) {
-        options.headers = {
-          "x-ms-blob-type": "BlockBlob",
-        };
       }
       
       return fetchRetry(info.urls[idx], options);
