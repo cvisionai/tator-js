@@ -470,7 +470,7 @@ export class VideoCanvas extends AnnotationCanvas {
 
       if (buffer == undefined || buffer == "play") {
         // If we are switching buffer clean up memory of old quality
-        if (new_play_idx != this._play_idx)
+        if (new_play_idx != this._play_idx && this._play_idx != this._scrub_idx)
         {
           this._videoElement[this._play_idx].reset();
         }
