@@ -949,10 +949,8 @@ class TatorVideoBuffer {
         //console.info(`LIMIT HIT ${timestamp} > ${limit}`);
         break;
       }
-      all.push(new Promise((resolve) => 
-      {
-        this._setupFile(timestamp).then(() => 
-        {
+      all.push(new Promise((resolve) => {
+        this._setupFile(timestamp).then(() => {
           let mp4File = this._fileForOffset(timestamp);
           mp4File.seek(0);
           mp4File.start();
