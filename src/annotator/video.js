@@ -2363,6 +2363,8 @@ export class VideoCanvas extends AnnotationCanvas {
     {
       return;
     }
+    // Clear the current request if we haven't heard back in 500ms
+    setTimeout(() => {this._pendingReq = null;}, 500);
 
     // Don't use on-demand downloading for legacy videos.
     if (this.isInCompatibilityMode() == true)
@@ -2535,8 +2537,6 @@ export class VideoCanvas extends AnnotationCanvas {
               "id": this._onDemandId
             }
           );
-          // Clear the current request if we haven't heard back in 500ms
-          setTimeout(() => {this._pendingReq = null;}, 500);
         }
       }
     }
