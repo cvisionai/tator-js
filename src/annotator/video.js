@@ -2357,6 +2357,10 @@ export class VideoCanvas extends AnnotationCanvas {
       this.sendPlaybackReady();
       return;
     }
+    else if (this._pendingReq == reqFrame)
+    {
+      return;
+    }
 
     // Don't use on-demand downloading for legacy videos.
     if (this.isInCompatibilityMode() == true)
@@ -2390,8 +2394,8 @@ export class VideoCanvas extends AnnotationCanvas {
     // Assumed that you're going forward on seek (when this function is expected to be called)
     this._lastDirection = Direction.FORWARD;
     var that = this;
+    this._pendingReq = reqFrame;
     var restartOnDemand = function () {
-
       console.log("******* restarting onDemand: Clearing old buffer");
       that.stopPlayerThread();
       clearTimeout(that._onDemandDownloadTimeout);
@@ -2529,6 +2533,8 @@ export class VideoCanvas extends AnnotationCanvas {
               "id": this._onDemandId
             }
           );
+          // Clear the current request if we haven't heard back in 500ms
+          setTimeout(() => {this._pendingReq = null;}, 500);
         }
       }
     }
