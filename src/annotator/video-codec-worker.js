@@ -223,7 +223,7 @@ class TatorVideoBuffer {
     }
     catch (e)
     {
-      console.warn(e);
+      //console.warn(e); // This is a non-fatal error as it happens for all AV1 files
       return null;
     }
   }
