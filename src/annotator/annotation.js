@@ -1867,24 +1867,20 @@ export class AnnotationCanvas extends HTMLElement
       }
       this.forceSizeChange();
       this.dispatchEvent(new Event("canvasResized"));
-      requestAnimationFrame(() => {
-
-
-        // Finalize the resize
-        this._resizeTimer = setTimeout(() => {
-          //this._draw.resizeViewport(dims[0], dims[1]);
-          if (this.isPaused() == true)
-          {
-            this._hqFallbackTimer = setTimeout(() => {this.refresh(true)}, 3000);
-            this.refresh(false).then(() => {
-              clearTimeout(this._hqFallbackTimer);
-              this.refresh(true);
-            });
-          }
-          this.forceSizeChange();
-          this.dispatchEvent(new Event("canvasResized"));
-        }, 10);
-      });
+      // Finalize the resize
+      this._resizeTimer = setTimeout(() => {
+        //this._draw.resizeViewport(dims[0], dims[1]);
+        if (this.isPaused() == true)
+        {
+          this._hqFallbackTimer = setTimeout(() => {this.refresh(true)}, 3000);
+          this.refresh(false).then(() => {
+            clearTimeout(this._hqFallbackTimer);
+            this.refresh(true);
+          });
+        }
+        this.forceSizeChange();
+        this.dispatchEvent(new Event("canvasResized"));
+      }, 100);
     });
   }
 
