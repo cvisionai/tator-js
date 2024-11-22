@@ -687,7 +687,7 @@ class TatorVideoBuffer {
     }
   }
 
-  _frameReady(frame)
+  async _frameReady(frame)
   {
     this._framesOut++;
     //console.info(`${performance.now()} ${this._name}: GOT FRAME ${frame.timestamp}`);
@@ -768,23 +768,23 @@ class TatorVideoBuffer {
       let image = new Uint8Array(slot, CTRL_SIZE);
       const this_width = Math.min(this._trackWidth, frame.codedWidth);
       const this_height = Math.min(this._trackHeight, frame.codedHeight);
-      frame.copyTo(image, {rect:{width:this_width, height:this_height}}).then(() => {
-        //console.info(`${performance.now()}: ${this._name}@${this._current_cursor}: Publishing @ ${frame.timestamp/timeScale}-${(frame.timestamp+frameDelta)/timeScale} KFO=${this.keyframeOnly}`);
-        const width = this_width;
-        const height = this_height;
-        const format = frame.format;
-        frame.close();
-        this._frameReturn();
-        postMessage({"type": "image",
-                    "data": slot,
-                    "width": width,
-                    "height": height,
-                    "format": format,
-                    "timestamp": timestamp,
-                    "timescale": timeScale,
-                    "frameDelta": frameDelta,
-                    "seconds": timestamp/timeScale});
-      });
+      //console.info(`Allocating ${timestamp} ${this_width}x${this_height} for ${frame.codedWidth}x${frame.codedHeight} image is ${image.length}`);
+      await frame.copyTo(image, {rect:{width:this_width, height:this_height}});
+      //console.info(`${performance.now()}: ${this._name}@${this._current_cursor}: Publishing @ ${frame.timestamp/timeScale}-${(frame.timestamp+frameDelta)/timeScale} KFO=${this.keyframeOnly}`);
+      const width = this_width;
+      const height = this_height;
+      const format = frame.format;
+      frame.close();
+      this._frameReturn();
+      postMessage({"type": "image",
+                  "data": slot,
+                  "width": width,
+                  "height": height,
+                  "format": format,
+                  "timestamp": timestamp,
+                  "timescale": timeScale,
+                  "frameDelta": frameDelta,
+                  "seconds": timestamp/timeScale});
     }
   }
 
