@@ -9,6 +9,29 @@ import { EffectManager } from "./video-effects.js";
 import { TatorSimpleVideo } from "./video-simple.js";
 import { guiFPS } from "./guiFPS.js";
 
+async function pingServerWithTimeout(url, timeout = 50) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+      const response = await fetch(url, { method: 'HEAD', signal: controller.signal });
+      clearTimeout(timeoutId); // Clear the timeout if fetch completes in time
+
+      if (response.ok) {
+          return true; // Ping successful
+      } else {
+          return false; // Server responded but not successfully
+      }
+  } catch (error) {
+      if (error.name === 'AbortError') {
+          console.log(`Ping failed: Request timed out after ${timeout}ms`);
+      } else {
+          console.log('Ping failed with error:', error);
+      }
+      return false; // Ping failed
+  }
+}
+
 // Video export class handles interactions between HTML presentation layer and the
 // javascript application.
 //
@@ -692,7 +715,7 @@ export class VideoCanvas extends AnnotationCanvas {
   //                                seek buffer. Otherwise be the highest quality will be used.
   // @param {integer} scrubQuality - If provided, closest quality to this will be used for the
   //                                 scrub buffer. Otherwise, closest quality to 320 will be used.
-  loadFromVideoObject(videoObject, mediaType, quality, resizeHandler, offsite_config, numGridRows, heightPadObject, seekQuality, scrubQuality, isPrimary = true)
+  async loadFromVideoObject(videoObject, mediaType, quality, resizeHandler, offsite_config, numGridRows, heightPadObject, seekQuality, scrubQuality, isPrimary = true)
   {
     this.isPrimary = isPrimary;
     this.mediaInfo = videoObject;
@@ -955,6 +978,104 @@ export class VideoCanvas extends AnnotationCanvas {
       })};
       return this._videoElement[this._scrub_idx].loadedDataPromise(this);
     }
+
+    // Figure out if any of the reference URLs contain both a video and segment info; and if they are acessible
+    // If so, use these to download the video instead of the other records
+    let byResolution = {};
+    let newStreamingFiles = [];
+    for (let idx = 0; idx < streaming_files.length; idx++)
+    {
+      let resolution = streaming_files[idx].resolution[0];
+      if (byResolution[resolution] == undefined)
+      {
+        byResolution[resolution] = [];
+      }
+
+      if (streaming_files[idx].path && streaming_files[idx].segment_info)
+      {
+        byResolution[resolution].push(streaming_files[idx]);
+      }
+    }
+
+    let serverAvailability = {};
+
+    for (let resolution in byResolution)
+    {
+      let resolutionFiles = byResolution[resolution];
+      if (resolutionFiles.length == 1)
+      {
+        newStreamingFiles.push(resolutionFiles[0]);
+      }
+      else
+      {
+        let reference_idx = -1;
+        for (let idx = 0; idx < resolutionFiles.length; idx++)
+        {
+          if (resolutionFiles[idx].reference_only)
+          {
+            reference_idx = idx;
+            break;
+          }
+        }
+
+        if (reference_idx != -1)
+        {
+          let reference_path = resolutionFiles[reference_idx].path;
+          let reference_path_url = new URL(reference_path);
+          let reference_path_host = reference_path_url.host;
+          if (serverAvailability[reference_path_host] == true)
+          {
+            newStreamingFiles.push(resolutionFiles[reference_idx]);
+            break; // Finished logic for this resolution
+          }
+          else if (serverAvailability[reference_path_host] == false)
+          {
+            // Pick any of the non reference ones
+            for (let idx = 0; idx < resolutionFiles.length; idx++)
+            {
+              if (idx != reference_idx)
+              {
+                newStreamingFiles.push(resolutionFiles[idx]);
+              }
+            }
+            break; // Finished logic for this resolution
+          }
+
+          // TODO: This could be much more sophisticated and use client location or something
+          let accessible = await pingServerWithTimeout(reference_path_url, 100);
+          if (accessible)
+          {
+            console.info("Server is available for " + reference_path_host);
+            serverAvailability[reference_path_host] = true;
+            newStreamingFiles.push(resolutionFiles[reference_idx]);
+          }
+          else
+          {
+            console.info("Server is not available for " + reference_path_host);
+            serverAvailability[reference_path_host] = false;
+            for (let idx = 0; idx < resolutionFiles.length; idx++)
+            {
+              if (idx != reference_idx)
+              {
+                newStreamingFiles.push(resolutionFiles[idx]);
+              }
+            }
+          }
+        }
+        else
+        {
+          console.warn("Pushing first of multiple for the same resolution");
+          // Todo: Add logic to determine which one to use, maybe by codec?
+          newStreamingFiles.push(resolutionFiles[0]);
+        }
+      }
+    }
+
+    // Set new streaming file definitions
+    streaming_files = newStreamingFiles;
+    videoObject.media_files.streaming = streaming_files;
+
+
 
     // Use the largest resolution to set the viewport
     dims = this.identify_qualities(videoObject, quality, scrubQuality, seekQuality, offsite_config);
