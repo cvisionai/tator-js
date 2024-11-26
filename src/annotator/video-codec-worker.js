@@ -223,7 +223,7 @@ class TatorVideoBuffer {
     }
     catch (e)
     {
-      console.warn(e);
+      //console.warn(e); // This is a non-fatal error as it happens for all AV1 files
       return null;
     }
   }
@@ -281,8 +281,8 @@ class TatorVideoBuffer {
     }
     if (this._sentReady == undefined)
     {
-      console.info(JSON.stringify(info.tracks[0]));
-      console.info(`${this._name} is configuring decoder = ${JSON.stringify(this._encoderConfig.get(timestampOffset))}`);
+      console.debug(JSON.stringify(info.tracks[0]));
+      console.debug(`${this._name} is configuring decoder = ${JSON.stringify(this._encoderConfig.get(timestampOffset))}`);
     }
     try
     {
@@ -300,9 +300,9 @@ class TatorVideoBuffer {
     if (this._sentReady == undefined)
     {
       this._sentReady = true;
-      console.info(`${this._name} decoder reports ${this._videoDecoder.state}`);
+      console.debug(`${this._name} decoder reports ${this._videoDecoder.state}`);
 
-      console.info(JSON.stringify(info));
+      console.debug(JSON.stringify(info));
     }
     postMessage({"type": "ready",
                  "data": info,
@@ -367,7 +367,7 @@ class TatorVideoBuffer {
 
     if (samples.length != new_samples.length)
     {
-      console.info(`${this._name}: Removed ${samples.length-new_samples.length} duplicates`);
+      console.debug(`${this._name}: Removed ${samples.length-new_samples.length} duplicates`);
     }
     samples = new_samples;
 
@@ -557,7 +557,7 @@ class TatorVideoBuffer {
     {
       for (let idx = 0; idx < this._bufferedRegions.length; idx++)
       {
-        console.info(`${this._name}: Pending Seek to ${this._pendingSeek} ${this._bufferedRegions.start(idx)} to ${this._bufferedRegions.end(idx)}`);
+        console.debug(`${this._name}: Pending Seek to ${this._pendingSeek} ${this._bufferedRegions.start(idx)} to ${this._bufferedRegions.end(idx)}`);
         if (this._pendingSeek > this._bufferedRegions.start(idx) && this._pendingSeek <= this._bufferedRegions.end(idx))
         {
           const seek_value = this._pendingSeek;
@@ -714,7 +714,6 @@ class TatorVideoBuffer {
         this._frameReturn();
         return;
       }
-      console.info()
       if (this._frameIdx % this.frameIncrement != 0)
       {
         frame.close();

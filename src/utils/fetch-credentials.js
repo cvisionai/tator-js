@@ -58,7 +58,15 @@ async function fetchCredentials(url, opts={}, retry=false, credsOnly=false) {
     newOpts = opts;
     newOpts.headers[credKey] = credentials.headers[credKey];
   } else {
-    newOpts = {...credentials, ...opts};
+    newOpts = {...opts};
+    if (newOpts.headers)
+    {
+      newOpts.headers = {...credentials.headers, ...newOpts.headers};
+    }
+    else
+    {
+      newOpts.headers = credentials.headers;
+    }
   }
 
   // Set host in URL
