@@ -30,16 +30,6 @@ export class MultiRenderer {
     for (let video in this._videos)
     {
       let callback = this._callbacks[video];
-      // If we get to the end let it go.
-      if (this._frameReq[video] > this._videos[video].length-5)
-      {
-        if (callback != null)
-        {
-          this._videos[video].gotoFrame(this._videos[video].length-5, true);
-        }
-        this._callbacks[video] = null;
-        continue;
-      }
       if (callback == null || this._videos[video]._draw.canPlay() <= 0)
       {
         return;
