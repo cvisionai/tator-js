@@ -1255,13 +1255,14 @@ export class VideoCanvas extends AnnotationCanvas {
     }));
 
     let ended = false;
+
     if (this._direction == Direction.FORWARD &&
-        this._dispFrame >= (this._numFrames - 1))
+        (this._dispFrame + this._motionComp._frameIncrement) >= (this._numFrames))
     {
       ended = true;
     }
     else if (this._direction == Direction.BACKWARDS &&
-             this._dispFrame <= 0)
+             this._dispFrame - this._motionComp._frameIncrement < 0)
     {
       ended = true;
     }
