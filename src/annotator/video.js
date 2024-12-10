@@ -1257,8 +1257,9 @@ export class VideoCanvas extends AnnotationCanvas {
     let ended = false;
 
     if (this._direction == Direction.FORWARD &&
-        (this._dispFrame + this._motionComp._frameIncrement) >= (this._numFrames))
+        (this._dispFrame + this._motionComp._frameIncrement) >= (this._numFrames - 1))
     {
+      // The watch has ended
       ended = true;
     }
     else if (this._direction == Direction.BACKWARDS &&
