@@ -152,10 +152,11 @@ export class MotionComp {
       this._updatesAt.push(update);
       update += this._schedule[idx];
     }
+    this._frameIncrement = this.frameIncrement(this._videoFps, factor);
     this._targetFPS = (this._schedule.length * 1000) / (this._lengthOfSchedule * this._interval);
     let msg = "Playback schedule = " + this._schedule + "\n";
     msg += "Updates @ " + this._updatesAt + "\n";
-    msg += "Frame Increment = " + this.frameIncrement(this._videoFps, factor) + "\n";
+    msg += "Frame Increment = " + this._frameIncrement + "\n";
     msg += "Target FPS = " + this._targetFPS + "\n";
     msg += "video FPS = " + videoFps + "\n";
     msg += "factor = " + factor + "\n";
@@ -164,6 +165,7 @@ export class MotionComp {
     //{
     //  Utilities.sendNotification(msg, true);
     //}
+
   }
 
   /// Given an animation idx, return true if it is an update cycle
