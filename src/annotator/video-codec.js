@@ -483,6 +483,7 @@ class TatorVideoManager {
     }
     const is_hot = this._cursor_is_hot();
     this._clean_hot(); // clean hot prior to potentially getting more data back
+    this.clearPending();
     this._codec_worker.postMessage(
       {"type": "currentTime",
        "currentTime": this._current_cursor,

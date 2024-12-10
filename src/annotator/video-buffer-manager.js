@@ -31,4 +31,14 @@ export class VideoBufferManager
     console.error("Consumed all the image slots, no where to put latest decoded frame.");
     return null;
   }
+
+  resetSlots()
+  {
+    for (let idx = 0; idx < this._slots.length; idx++)
+    {
+      let buffer = this._slots[idx];
+      let ctrl = new Uint32Array(buffer, 0, CTRL_SIZE);
+      Atomics.store(ctrl, 0, 0);
+    }
+  }
 }

@@ -677,6 +677,10 @@ class TatorVideoBuffer {
   {
     this._framesOut = 0;
     this._pendingEncodedFrames = [];
+    if (this._bufferManager != null)
+    {
+      this._bufferManager.resetSlots();
+    }
     try
     {
       this._videoDecoder.reset();
