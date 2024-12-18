@@ -6,6 +6,11 @@ export async function fetchRetry(url, options, retries = 5, backoff = 800) {
     if (response.ok) {
       return response;
     }
+    // 403's won't change if you try again
+    if (response.status === 403)
+    {
+      return response;
+    }
     throw new Error('Fetch failed');
   } catch (error) {
     if (retries > 0) {
