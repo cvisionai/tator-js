@@ -247,13 +247,17 @@ class TatorVideoManager {
     return false;
   }
 
-  cursor_in_image(image)
+  cursor_in_image(image, cursor)
   {
     const image_timescale = image.timescale;
     const frame_delta = image.frameDelta;
     const time = image.time;
+    if (cursor == undefined)
+    {
+      cursor = this._current_cursor
+    }
     let time_in_ctx = time * image_timescale;
-    let cursor_in_ctx = this._current_cursor * image_timescale;
+    let cursor_in_ctx = cursor * image_timescale;
     if (cursor_in_ctx >= time_in_ctx && cursor_in_ctx < time_in_ctx+frame_delta)
     {
       return true;
@@ -538,6 +542,68 @@ class TatorVideoManager {
       //console.error(`${this._name}: NULL For ${this._current_cursor}`);
       return null;
     }
+  }
+
+  // This function is used to get the frame at a specific time as quickly 
+  // as possible. It is the callers responsibility to close the frame when done with it.
+  // It ALWAYS goes to the demuxer and avoids the hot_frame cache.
+  async get_frame_synchronously(time)
+  {
+    let video_time = time + this._bias;
+    
+    // Disconnect existing message handler for this call
+    this._codec_worker.onmessage = null;
+
+    // Wrap the getFrame call in a promise to keep it
+    // synchronous to the caller
+    let sync_promise = new Promise((resolve, reject) => {
+      this._codec_worker.onmessage = (msg) => {
+        if (msg.data.type == "frame")
+        {
+          if (this.cursor_in_image(msg.data, time))
+          {
+            resolve(msg.data.data);
+          }
+          else
+          {
+            msg.data.data.close(); // Close any frames we don't care about
+          }
+        }
+        else if (msg.data.type == "buffered")
+        {
+
+        }
+        else
+        {
+          console.warn(`Unexpected message type ${msg.data.type}`);
+        }
+      }
+      this._codec_worker.postMessage(
+        {"type": "currentTime",
+         "currentTime": video_time + this._bias,
+         "videoTime": video_time,
+         "bias": this._bias,
+         "low_latency": true
+      });
+    });
+
+    let frame_data = await sync_promise;
+  
+    // Set things back to normal
+    // Set callback to original message handler
+    this._codec_worker.onmessage = this._on_message.bind(this);
+
+    this.clearPending();
+    // Make sure the worker is back in the game
+    this._codec_worker.postMessage(
+      {"type": "currentTime",
+       "currentTime": this._current_cursor,
+       "videoTime": this._current_cursor-this._bias,
+       "bias": this._bias,
+       "informational": true
+    });
+
+    return frame_data;
   }
 
   // Append data to the mp4 file

@@ -761,33 +761,55 @@ class TatorVideoBuffer {
         // Allocate enough static space for 55 frames
         this._bufferManager = new VideoBufferManager(frame.allocationSize({rect:{width:frame.codedWidth, height:frame.codedHeight}}), 55);
       }
-      let slot = this._bufferManager.getSlot();
-      if (slot == null)
+      
+      if (this._low_latency == true)
       {
-        // No slots, out of luck
-        frame.close();
-        return;
+        // In low latency mode, skip the ImageBitmap and just send the raw frame
+        // It's important for downstream logic to free the frame
+        postMessage({"type": "frame",  
+          "data": frame,
+          "cursor": this._current_cursor,
+          "timescale": timeScale,
+          "timestampOffset": timestampOffset,
+          "frameDelta": frameDelta,
+          "time": timestamp/timeScale
+          },
+          [frame]
+          ); // transfer frame copy to primary UI thread
       }
-      let image = new Uint8Array(slot, CTRL_SIZE);
-      const this_width = Math.min(this._trackWidth, frame.codedWidth);
-      const this_height = Math.min(this._trackHeight, frame.codedHeight);
-      frame.copyTo(image, {rect:{width:this_width, height:this_height}}).then(() => {
-        //console.info(`${performance.now()}: ${this._name}@${this._current_cursor}: Publishing @ ${frame.timestamp/timeScale}-${(frame.timestamp+frameDelta)/timeScale} KFO=${this.keyframeOnly}`);
-        const width = this_width;
-        const height = this_height;
-        const format = frame.format;
-        frame.close();
-        this._frameReturn();
-        postMessage({"type": "image",
-                    "data": slot,
-                    "width": width,
-                    "height": height,
-                    "format": format,
-                    "timestamp": timestamp,
-                    "timescale": timeScale,
-                    "frameDelta": frameDelta,
-                    "seconds": timestamp/timeScale});
-      });
+      else
+      {
+        // For lower latency operations use images we don't tie 
+        // up the decoder slots
+        let slot = this._bufferManager.getSlot();
+        if (slot == null)
+        {
+          // No slots, out of luck
+          frame.close();
+          return;
+        }
+        let image = new Uint8Array(slot, CTRL_SIZE);
+        const this_width = Math.min(this._trackWidth, frame.codedWidth);
+        const this_height = Math.min(this._trackHeight, frame.codedHeight);
+        
+        frame.copyTo(image, {rect:{width:this_width, height:this_height}}).then(() => {
+          //console.info(`${performance.now()}: ${this._name}@${this._current_cursor}: Publishing @ ${frame.timestamp/timeScale}-${(frame.timestamp+frameDelta)/timeScale} KFO=${this.keyframeOnly}`);
+          const width = this_width;
+          const height = this_height;
+          const format = frame.format;
+          frame.close();
+          this._frameReturn();
+          postMessage({"type": "image",
+                      "data": slot,
+                      "width": width,
+                      "height": height,
+                      "format": format,
+                      "timestamp": timestamp,
+                      "timescale": timeScale,
+                      "frameDelta": frameDelta,
+                      "seconds": timestamp/timeScale});
+        });
+      }
     }
   }
 
@@ -810,8 +832,9 @@ class TatorVideoBuffer {
   // Timing considerations:
   // - This will either grab from pre-decoded frames and run very quickly or
   //   jump to the nearest preceding keyframe and decode new frames (slightly slower)
-  _setCurrentTime(video_time, informational, raw_video_time)
+  _setCurrentTime(video_time, informational, raw_video_time, low_latency)
   {
+    this._low_latency = low_latency;
     this._current_cursor = video_time;
     //console.info(`${performance.now()} ${this._name} now @ ${this._current_cursor}: ${informational}`);
     if (informational)
@@ -1155,7 +1178,7 @@ onmessage = function(e)
   }
   else if (msg.type == "currentTime")
   {
-    ref._setCurrentTime(msg.currentTime, msg.informational, msg.videoTime);
+    ref._setCurrentTime(msg.currentTime, msg.informational, msg.videoTime, msg.low_latency);
   }
   else if (msg.type == "pause")
   {
