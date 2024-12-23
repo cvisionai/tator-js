@@ -441,6 +441,9 @@ class TatorVideoManager {
   // Timing considerations:
   // - This will either grab from pre-decoded frames and run very quickly or
   //   jump to the nearest preceding keyframe and decode new frames (slightly slower)
+  // - This is to match to the legacy behavior of the MSE interface
+  // - NOTE: If the video is in a summary mode, the cursor will be rounded to the nearest
+  //  Nth second based on the summary level
   set currentTime(video_time)
   {
     // If we are approximating seeking, we should land on the nearest buffered time
