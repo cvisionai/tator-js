@@ -89,7 +89,8 @@ function uploadMulti(project, stream, size, info, numChunks, chunkSize, progress
 
 // Uploads using a single request.
 async function uploadSingle(stream, size, info, progressCallback, abortController) {
-  const msUpload = info.urls[0].includes("blob.core.windows.net");
+  let url = new URL(info.urls[0]);
+  const msUpload = url.searchParams.has("sig");
   const reader = makeReaderWithFixedChunks(stream.getReader(), size);
   let headers = {};
   if (msUpload) {
