@@ -1747,6 +1747,16 @@ export class AnnotationCanvas extends HTMLElement
       return true;
     }
     const ratio=this._dims[0]/this._dims[1];
+    if (window.MODE == "FULLSCREEN") {
+      if (window.innerHeight * ratio < window.innerWidth) {
+        this.style.height = `${window.innerHeight}px`;
+        this.style.width = `${window.innerHeight * ratio}px`;
+      } else {
+        this.style.height = `${window.innerWidth / ratio}px`;
+        this.style.width = `${window.innerWidth}px`;
+      }
+      return true;
+    }
     var maxHeight;
     if (this._gridRows) {
       maxHeight = (window.innerHeight - this.heightPadObject.height) / this._gridRows;
@@ -1806,6 +1816,16 @@ export class AnnotationCanvas extends HTMLElement
     }
 
     const ratio=dims[0]/dims[1];
+    if (window.MODE == "FULLSCREEN") {
+      if (window.innerHeight * ratio < window.innerWidth) {
+        this.style.height = `${window.innerHeight}px`;
+        this.style.width = `${window.innerHeight * ratio}px`;
+      } else {
+        this.style.height = `${window.innerWidth / ratio}px`;
+        this.style.width = `${window.innerWidth}px`;
+      }
+      return true;
+    }
     var that = this;
     var resizeHandler = function()
     {
