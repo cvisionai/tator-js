@@ -360,6 +360,15 @@ export class VideoCanvas extends AnnotationCanvas {
       }));
   }
 
+  sendPlaybackNotReady() {
+    this.dispatchEvent(new CustomEvent(
+      "playbackNotReady",
+      {
+        composed: true,
+        detail: {playbackReadyId: this._waitId},
+      }));
+  }
+
   startDownload(streaming_files, offsite_config, info_only)
   {
     if (this._children)
@@ -2656,7 +2665,7 @@ export class VideoCanvas extends AnnotationCanvas {
           this._dlWorker.postMessage(
             {
               "type": "onDemandInit",
-              "frame": this._dispFrame,
+              "frame": (this._lastBack ? this._lastBack : this._dispFrame),
               "fps": this._fps,
               "maxFrame": this._numFrames - 1,
               "direction": downloadDirection,
@@ -2753,6 +2762,7 @@ export class VideoCanvas extends AnnotationCanvas {
                 {
                   if (video.playBuffer().readyState == "open" && this.videoBuffer(this.currentFrame(), "play") != null)
                   {
+                    this._lastBack = null;
                     console.log(`(ID:${this._videoObject.id}) playbackReady (start/end/current/timeToEnd): ${start} ${end} ${currentTime} ${timeToEnd}`)
                     this._sentPlaybackReady = true;
                     this.dispatchEvent(new CustomEvent(
@@ -2861,7 +2871,31 @@ export class VideoCanvas extends AnnotationCanvas {
         }
       }
 
-      if (needMoreData && !this._onDemandFinished && this._onDemandPendingDownloads == 0)// && !(this._direction == Direction.STOPPED && this._onDemandPlaybackReady))
+      if (needMoreData && this._onDemandFinished && this._onDemandPendingDownloads == 0)
+      {
+        this.sendPlaybackNotReady();
+        console.warn(`I need more data, but the downloader is done. LB=${this._lastBack}`);
+        if (this._lastBack == null)
+        {
+          this._lastBack = this._dispFrame - 100;
+        }
+        else
+        {
+          this._lastBack -= 100;
+        }
+        this._lastBack = Math.max(0, this._lastBack);
+        console.warn(`Prefetching to: ${this._lastBack}`);
+        video.resetOnDemandBuffer().then(() => {
+          this._onDemandDownloadTimeout = setTimeout(() => {
+            this._onDemandInit = false;
+            this._onDemandInitSent = false;
+            this._onDemandPlaybackReady = false;
+            this._onDemandFinished = false;
+            this.onDemandDownload()}, 50);
+          });
+        return;
+      }
+      else if (needMoreData && !this._onDemandFinished && this._onDemandPendingDownloads == 0)// && !(this._direction == Direction.STOPPED && this._onDemandPlaybackReady))
       {
         // Kick of the download worker to get the next onDemand segments
         //console.log(`(ID:${this._videoObject.id}) Requesting more onDemand data (pendingDownloads/playbackReady/ranges.length): ${this._onDemandPendingDownloads} ${this._onDemandPlaybackReady} ${ranges.length}`);
