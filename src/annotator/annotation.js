@@ -1748,12 +1748,21 @@ export class AnnotationCanvas extends HTMLElement
     }
     const ratio=this._dims[0]/this._dims[1];
     if (window.MODE == "FULLSCREEN") {
-      if (window.innerHeight * ratio < window.innerWidth) {
-        this._canvas.height = window.innerHeight;
-        this._canvas.width = window.innerHeight * ratio;
+      if (this._gridRows) {
+        if (window.innerHeight * ratio < window.innerWidth) {
+          this._canvas.height = window.innerHeight / this._gridRows;
+        } else {
+          this._canvas.height = window.innerWidth / ratio / this._gridRows;
+        }
+        this._canvas.width = this._canvas.height * ratio;
       } else {
-        this._canvas.height = window.innerWidth / ratio;
-        this._canvas.width = window.innerWidth;
+        if (window.innerHeight * ratio < window.innerWidth) {
+          this._canvas.height = window.innerHeight;
+          this._canvas.width = window.innerHeight * ratio;
+        } else {
+          this._canvas.height = window.innerWidth / ratio;
+          this._canvas.width = window.innerWidth;
+        }
       }
     } else {
       var maxHeight;
