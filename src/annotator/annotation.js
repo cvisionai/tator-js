@@ -724,7 +724,7 @@ function emphasisColor(localization)
   return color.blend(color.WHITE, localization.color, 0.50);
 }
 
-const MouseMode =
+export const MouseMode =
       {
         // Default mode, query for localizations
         QUERY: 0,
