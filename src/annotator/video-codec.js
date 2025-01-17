@@ -90,6 +90,7 @@ class TatorVideoManager {
 
   clearPending()
   {
+    this._clean_hot(true);
     this._codec_worker.postMessage({"type": "clearAllPending"});
   }
 
@@ -490,7 +491,6 @@ class TatorVideoManager {
     }
     const is_hot = this._cursor_is_hot();
     this._clean_hot(); // clean hot prior to potentially getting more data back
-    this.clearPending();
     this._codec_worker.postMessage(
       {"type": "currentTime",
        "currentTime": this._current_cursor,
@@ -573,6 +573,12 @@ class TatorVideoManager {
         {
 
         }
+        else if (msg.data.type == "image")
+        {
+          // Make sure to free up any wayward images that make it in
+          let ctrl = new Uint32Array(msg.data.data,0,CTRL_SIZE);
+          Atomics.store(ctrl,0,0);
+        }
         else
         {
           console.warn(`Unexpected message type ${msg.data.type}`);
@@ -593,7 +599,6 @@ class TatorVideoManager {
     // Set callback to original message handler
     this._codec_worker.onmessage = this._on_message.bind(this);
 
-    this.clearPending();
     // Make sure the worker is back in the game
     this._codec_worker.postMessage(
       {"type": "currentTime",
