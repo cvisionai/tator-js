@@ -2665,7 +2665,7 @@ export class VideoCanvas extends AnnotationCanvas {
           this._dlWorker.postMessage(
             {
               "type": "onDemandInit",
-              "frame": (this._lastBack ? this._lastBack : this._dispFrame),
+              "frame": (this._lastBack != undefined ? this._lastBack : this._dispFrame),
               "fps": this._fps,
               "maxFrame": this._numFrames - 1,
               "direction": downloadDirection,
