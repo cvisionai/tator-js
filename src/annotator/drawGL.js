@@ -411,25 +411,66 @@ export class DrawGL
     this._formatCanvas = new OffscreenCanvas(width, height);
     this._formatCtx = this._formatCanvas.getContext("2d", {desynchronized:true});
     var gl=this.gl;
+    const aspectRatioWH = width / height;
     try
     {
       var dpi = window.devicePixelRatio;
-      console.info("Resize to " + width + ", " + height + " at DPI: " + dpi);
-      this.viewport.setAttribute('height', height);
-      this.viewport.setAttribute('width', width);
+      let maxHeight = window.screen.height;
+      let maxWidth = window.screen.width;
+      if (this.viewport.constructor.name == "OffscreenCanvas")
+      {
+        // we are off-screen here
+        maxHeight = height;
+        maxWidth = width;
+      }
 
-      // The player may have blown up the video depending on
-      // UI choices. The view port should be set to physical
-      // picture height/width. which includes factoring in DPI
-      this.clientHeight = height;
-      this.clientWidth = width;
+      if (width > maxWidth || height > maxHeight)
+      {
+        if (width > maxWidth)
+        {
+          const newWidth = maxWidth;
+          const newHeight = newWidth / aspectRatioWH;
+          width = newWidth;
+          height = newHeight;
+        }
+        else
+        {
+          const newHeight = maxHeight;
+          const newWidth = newHeight * aspectRatioWH;
+          width = newWidth;
+          height = newHeight;
+        }
+      }
 
-      // Turns out you need to reset this after the browser snaps
-      // and account for the Device Pixel Ratio to render properly
-      this.viewport.setAttribute('height', this.clientHeight);
-      this.viewport.setAttribute('width', this.clientWidth);
+      if (this.clientWidth != width || this.clientHeight != height)
+      {
+        // Set viewport first
+        this.viewport.setAttribute('height', height);
+        this.viewport.setAttribute('width', width);
 
-      gl.viewport(0,0, this.clientWidth,this.clientHeight);
+        if (this.viewport.clientHeight < height)
+        {
+          // Optimize to actual client height/width for rendering
+          height = this.viewport.clientHeight;
+          width = this.viewport.clientWidth;
+        }
+
+        console.info("Resize to " + width + ", " + height + " at DPI: " + dpi);
+
+
+        // The player may have blown up the video depending on
+        // UI choices. The view port should be set to physical
+        // picture height/width. which includes factoring in DPI
+        this.clientHeight = height;
+        this.clientWidth = width;
+
+        // Turns out you need to reset this after the browser snaps
+        // and account for the Device Pixel Ratio to render properly
+        this.viewport.setAttribute('height', this.clientHeight);
+        this.viewport.setAttribute('width', this.clientWidth);
+
+        gl.viewport(0,0, this.clientWidth,this.clientHeight);
+      }
     }
     catch(error)
     {

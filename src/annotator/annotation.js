@@ -1763,15 +1763,12 @@ export class AnnotationCanvas extends HTMLElement
       let vStretch = (maxHeight/this._canvas.height);
       if (hStretch > 1 || vStretch > 1)
       {
-        this._canvas.width = maxWidth;
-        this._canvas.height = maxHeight;
         this._draw.resizeViewport(maxWidth, maxHeight);
       }
     }
     else
     {
-      this._canvas.width = this._dims[0];
-      this._canvas.height = this._dims[1];
+      this._draw.resizeViewport(this._dims[0], this._dims[1]);
     }
     this._canvas.style.maxHeight=`${maxHeight}px`;
     this.parentElement.style.maxWidth=`${maxWidth}px`;
