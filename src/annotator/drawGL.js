@@ -419,9 +419,10 @@ export class DrawGL
       let maxWidth = window.screen.width;
       if (this.viewport.constructor.name == "OffscreenCanvas")
       {
-        // we are off-screen here
-        maxHeight = height;
-        maxWidth = width;
+        //const maxDims = gl.getParameter(gl.MAX_VIEWPORT_DIMS);
+        // The above is broken and misreports maximum size
+        maxHeight = 4320;
+        maxWidth = 7680;
       }
 
       if (width > maxWidth || height > maxHeight)

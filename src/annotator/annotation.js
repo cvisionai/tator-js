@@ -5142,8 +5142,6 @@ export class AnnotationCanvas extends HTMLElement
     if (this._offscreen.width != width ||
         this._offscreen.height != height)
     {
-      this._offscreen.width = width;
-      this._offscreen.height = height;
       this._offscreenDraw.resizeViewport(width, height);
     }
     this._offscreenDraw.clear();
