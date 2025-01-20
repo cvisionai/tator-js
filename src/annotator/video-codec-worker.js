@@ -782,11 +782,17 @@ class TatorVideoBuffer {
         // For lower latency operations use images we don't tie 
         // up the decoder slots
         let slot = this._bufferManager.getSlot();
+        let reset = false;
         if (slot == null)
         {
-          // No slots, out of luck
-          frame.close();
-          return;
+          reset = true;
+          this._bufferManager.resetSlots();
+          slot = this._bufferManager.getSlot();
+          if (slot == null)
+          {
+            frame.close();
+            console.warning(`${this._name}: Failed to get a slot for the image`);
+          }
         }
         let image = new Uint8Array(slot, CTRL_SIZE);
         const this_width = Math.min(this._trackWidth, frame.codedWidth);
@@ -800,6 +806,7 @@ class TatorVideoBuffer {
           frame.close();
           this._frameReturn();
           postMessage({"type": "image",
+                       "reset": reset,
                       "data": slot,
                       "width": width,
                       "height": height,

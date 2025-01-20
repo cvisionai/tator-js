@@ -296,6 +296,11 @@ class TatorVideoManager {
 
   _imageReady(image)
   {
+    if (image.data.reset == true)
+    {
+      console.info(`${this._name}: Resetting image buffer`);
+      this._clean_hot(true);
+    }
     //console.info(`${performance.now()}: GOT ${this._name}: GOT h=${image.height}`);
     // Make the image a uint8 clamped array
     image.data.timescale = image.timescale;
