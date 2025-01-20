@@ -446,9 +446,11 @@ export class DrawGL
       if (this.clientWidth != width || this.clientHeight != height)
       {
         // Set viewport first
-        this.viewport.setAttribute('height', height);
-        this.viewport.setAttribute('width', width);
-
+        if (this.viewport.constructor.name != "OffscreenCanvas")
+        {
+          this.viewport.setAttribute('height', height);
+          this.viewport.setAttribute('width', width);
+        }
         if (this.viewport.clientHeight < height)
         {
           // Optimize to actual client height/width for rendering
@@ -467,8 +469,11 @@ export class DrawGL
 
         // Turns out you need to reset this after the browser snaps
         // and account for the Device Pixel Ratio to render properly
-        this.viewport.setAttribute('height', this.clientHeight);
-        this.viewport.setAttribute('width', this.clientWidth);
+        if (this.viewport.constructor.name != "OffscreenCanvas")
+        {
+          this.viewport.setAttribute('height', this.clientHeight);
+          this.viewport.setAttribute('width', this.clientWidth);
+        }
 
         gl.viewport(0,0, this.clientWidth,this.clientHeight);
       }
@@ -480,9 +485,6 @@ export class DrawGL
       this.clientWidth=width;
       gl.viewport(0,0,width, height);
     }
-
-
-    console.info("GL Viewport: " + this.clientWidth + "x" + this.clientHeight );
 
     //Allocate MSAA renderbuffer (4x multisample)
     gl.bindRenderbuffer(gl.RENDERBUFFER, this.msaaBuffer);
