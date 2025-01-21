@@ -2576,7 +2576,7 @@ export class VideoCanvas extends AnnotationCanvas {
     let found_it = false;
     for (let idx = 0; idx < ranges.length; idx++)
     {
-      if (reqFrame >= ranges.start(idx) && reqFrame <= ranges.end(idx))
+      if (this_time >= ranges.start(idx) && this_time <= ranges.end(idx))
       {
         timeToEnd = ranges.end(idx) - this_time;
         found_it = true;
