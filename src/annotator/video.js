@@ -2665,7 +2665,7 @@ export class VideoCanvas extends AnnotationCanvas {
           this._dlWorker.postMessage(
             {
               "type": "onDemandInit",
-              "frame": (this._lastBack != undefined ? this._lastBack : this._dispFrame),
+              "frame": this._dispFrame,
               "fps": this._fps,
               "maxFrame": this._numFrames - 1,
               "direction": downloadDirection,
@@ -2762,7 +2762,6 @@ export class VideoCanvas extends AnnotationCanvas {
                 {
                   if (video.playBuffer().readyState == "open" && this.videoBuffer(this.currentFrame(), "play") != null)
                   {
-                    this._lastBack = null;
                     console.log(`(ID:${this._videoObject.id}) playbackReady (start/end/current/timeToEnd): ${start} ${end} ${currentTime} ${timeToEnd}`)
                     this._sentPlaybackReady = true;
                     this.dispatchEvent(new CustomEvent(
@@ -2874,17 +2873,7 @@ export class VideoCanvas extends AnnotationCanvas {
       if (needMoreData && this._onDemandFinished && this._onDemandPendingDownloads == 0)
       {
         this.sendPlaybackNotReady();
-        console.warn(`I need more data, but the downloader is done. LB=${this._lastBack}`);
-        if (this._lastBack == null)
-        {
-          this._lastBack = this._dispFrame - 100;
-        }
-        else
-        {
-          this._lastBack -= 100;
-        }
-        this._lastBack = Math.max(0, this._lastBack);
-        console.warn(`Prefetching to: ${this._lastBack}`);
+        console.warn(`I need more data, but the downloader is done.`);
         video.resetOnDemandBuffer().then(() => {
           this._onDemandDownloadTimeout = setTimeout(() => {
             this._onDemandInit = false;
