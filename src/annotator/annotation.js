@@ -1759,10 +1759,16 @@ export class AnnotationCanvas extends HTMLElement
         if (window.innerHeight * ratio < window.innerWidth) {
           this._canvas.height = window.innerHeight;
           this._canvas.width = window.innerHeight * ratio;
+          this.style.top = "0px"
+          this.style.left = Math.floor(window.innerWidth / 2 - this._canvas.width / 2) + "px";
         } else {
           this._canvas.height = window.innerWidth / ratio;
           this._canvas.width = window.innerWidth;
+          this.style.top = Math.floor(window.innerHeight / 2 - this._canvas.height / 2) + "px";
+          this.style.left = "0px"
         }
+        this.style.width = this._canvas.width + "px";
+        this.style.height = this._canvas.height + "px";
       }
     } else {
       var maxHeight;
@@ -1829,12 +1835,21 @@ export class AnnotationCanvas extends HTMLElement
     var resizeHandler = function()
     {
       if (window.MODE == "FULLSCREEN") {
-        if (window.innerHeight * ratio < window.innerWidth) {
-          this._canvas.height = window.innerHeight;
-          this._canvas.width = window.innerHeight * ratio;
+        if (this._gridRows) {
+          if (window.innerHeight * ratio < window.innerWidth) {
+            this._canvas.height = window.innerHeight / this._gridRows;
+          } else {
+            this._canvas.height = window.innerWidth / ratio / this._gridRows;
+          }
+          this._canvas.width = this._canvas.height * ratio;
         } else {
-          this._canvas.height = window.innerWidth / ratio;
-          this._canvas.width = window.innerWidth;
+          if (window.innerHeight * ratio < window.innerWidth) {
+            this._canvas.height = window.innerHeight;
+            this._canvas.width = window.innerHeight * ratio;
+          } else {
+            this._canvas.height = window.innerWidth / ratio;
+            this._canvas.width = window.innerWidth;
+          }
         }
       } else {
         var maxHeight;
