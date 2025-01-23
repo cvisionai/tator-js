@@ -1846,10 +1846,16 @@ export class AnnotationCanvas extends HTMLElement
           if (window.innerHeight * ratio < window.innerWidth) {
             this._canvas.height = window.innerHeight;
             this._canvas.width = window.innerHeight * ratio;
+            this.style.top = "0px"
+            this.style.left = Math.floor(window.innerWidth / 2 - this._canvas.width / 2) + "px";
           } else {
             this._canvas.height = window.innerWidth / ratio;
             this._canvas.width = window.innerWidth;
+            this.style.top = Math.floor(window.innerHeight / 2 - this._canvas.height / 2) + "px";
+            this.style.left = "0px"
           }
+          this.style.width = this._canvas.width + "px";
+          this.style.height = this._canvas.height + "px";
         }
       } else {
         var maxHeight;
