@@ -49,15 +49,6 @@ const vsSource = `#version 300 es
     // -  4 is donut, arg1 is inner radius (0 makes a solid circle)
     in vec4 filterOp;
 
-    // These two matrices convert our pixel coordinate vertex (0,0) to
-    // (imgWidth,imgHeight) to view space coordinates.
-
-    uniform vec2 u_ViewShift;
-    uniform vec2 u_ViewScale;
-
-    // Flip y coordinate to match drawing APIs (HTML5, QT)
-    uniform float u_ViewFlip;
-
     // This is really a 1D texture, but webgl (or webgl2)
     // only supports 2D textures, so we will just make it Nx1.
     uniform sampler2D colorPalette;
@@ -67,10 +58,7 @@ const vsSource = `#version 300 es
     out vec4 filterOp_s;
 
     void main() {
-      vec2 flippedVertex = vec2(vertex.x, u_ViewFlip-vertex.y);
-      vec2 normalized = u_ViewScale * (flippedVertex-u_ViewShift);
-
-      gl_Position = vec4(normalized, 0.0, 1.0);
+      gl_Position = vec4(vertex.x,vertex.y, 0.0, 1.0);
       texcoord=uvcoord;
       rgba = color/255.0;
       filterOp_s = filterOp;
@@ -158,16 +146,17 @@ const imageFsSource = `#version 300 es
 
 // Given an image width/height, compute the vertex quad in image pixel
 // coordinates
-// Convention: 0,0 is lower left.
+// In openGL coordinates this is a constantly in the range of -1 to 1 
+// in both Y and X axis.
 function computeQuad(width, height)
 {
   // We are only in 2d space, so we can save a vertex coordinate
   // We are using draw coordinates here, not openGL conventions
   var quad = new Float32Array([
-    0.0, height,  // bottom left
-    0.0,  0.0, //top left
-    width, 0.0,  // top right
-    width, height, // bottom right
+    -1.0, -1.0,  // bottom left
+    -1.0,  1.0, //top left
+    1.0, 1.0,  // top right
+    1.0, -1.0, // bottom right
   ]);
   return quad;
 }
@@ -303,6 +292,18 @@ export class DrawGL
     return shader;
   };
 
+  normalizeVertexX(x)
+  {
+    // 0 to client width to -1 to 1
+    return Math.min(1,Math.max(-1,(2.0*x/this.clientWidth)-1.0));
+  }
+
+  normalizeVertexY(y)
+  {
+    // 0 to client height to 1 to -1
+    return Math.min(1,Math.max(-1,(1.0-(2.0*y/this.clientHeight))));
+  }
+
   setViewport(canvas)
   {
     // Support format changing prior to openGL call
@@ -410,25 +411,72 @@ export class DrawGL
     this._formatCanvas = new OffscreenCanvas(width, height);
     this._formatCtx = this._formatCanvas.getContext("2d", {desynchronized:true});
     var gl=this.gl;
+    const aspectRatioWH = width / height;
     try
     {
       var dpi = window.devicePixelRatio;
-      console.info("Resize to " + width + ", " + height + " at DPI: " + dpi);
-      this.viewport.setAttribute('height', height);
-      this.viewport.setAttribute('width', width);
+      let maxHeight = window.screen.height;
+      let maxWidth = window.screen.width;
+      if (this.viewport.constructor.name == "OffscreenCanvas")
+      {
+        //const maxDims = gl.getParameter(gl.MAX_VIEWPORT_DIMS);
+        // The above is broken and misreports maximum size
+        maxHeight = 4320;
+        maxWidth = 7680;
+      }
 
-      // The player may have blown up the video depending on
-      // UI choices. The view port should be set to physical
-      // picture height/width. which includes factoring in DPI
-      this.clientHeight = height;
-      this.clientWidth = width;
+      if (width > maxWidth || height > maxHeight)
+      {
+        if (width > maxWidth)
+        {
+          const newWidth = maxWidth;
+          const newHeight = newWidth / aspectRatioWH;
+          width = newWidth;
+          height = newHeight;
+        }
+        else
+        {
+          const newHeight = maxHeight;
+          const newWidth = newHeight * aspectRatioWH;
+          width = newWidth;
+          height = newHeight;
+        }
+      }
 
-      // Turns out you need to reset this after the browser snaps
-      // and account for the Device Pixel Ratio to render properly
-      this.viewport.setAttribute('height', this.clientHeight);
-      this.viewport.setAttribute('width', this.clientWidth);
+      if (this.clientWidth != width || this.clientHeight != height)
+      {
+        // Set viewport first
+        if (this.viewport.constructor.name != "OffscreenCanvas")
+        {
+          this.viewport.setAttribute('height', height);
+          this.viewport.setAttribute('width', width);
+        }
+        if (this.viewport.clientHeight < height)
+        {
+          // Optimize to actual client height/width for rendering
+          height = this.viewport.clientHeight;
+          width = this.viewport.clientWidth;
+        }
 
-      gl.viewport(0,0, this.clientWidth,this.clientHeight);
+        console.info("Resize to " + width + ", " + height + " at DPI: " + dpi);
+
+
+        // The player may have blown up the video depending on
+        // UI choices. The view port should be set to physical
+        // picture height/width. which includes factoring in DPI
+        this.clientHeight = height;
+        this.clientWidth = width;
+
+        // Turns out you need to reset this after the browser snaps
+        // and account for the Device Pixel Ratio to render properly
+        if (this.viewport.constructor.name != "OffscreenCanvas")
+        {
+          this.viewport.setAttribute('height', this.clientHeight);
+          this.viewport.setAttribute('width', this.clientWidth);
+        }
+
+        gl.viewport(0,0, this.clientWidth,this.clientHeight);
+      }
     }
     catch(error)
     {
@@ -437,9 +485,6 @@ export class DrawGL
       this.clientWidth=width;
       gl.viewport(0,0,width, height);
     }
-
-
-    console.info("GL Viewport: " + this.clientWidth + "x" + this.clientHeight );
 
     //Allocate MSAA renderbuffer (4x multisample)
     gl.bindRenderbuffer(gl.RENDERBUFFER, this.msaaBuffer);
@@ -453,26 +498,10 @@ export class DrawGL
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-    // Load the uniform for the view screen size + shift
-    this._viewShiftLoc = gl.getUniformLocation(this.imageShaderProg, "u_ViewShift");
-    gl.uniform2fv(this._viewShiftLoc,[this.clientWidth/2,
-                                this.clientHeight/2]);
-
-    // The scale is in terms of actual image pixels so that inputs are in image
-    // pixels not device pixels.
-    var viewScale = [2/((this.clientWidth)),2/((this.clientHeight))];
-    // This vector scales an image unit to a viewscale unit
-    this._viewScaleLoc = gl.getUniformLocation(this.imageShaderProg, "u_ViewScale");
-    gl.uniform2fv(this._viewScaleLoc,viewScale);
-
     var resolution = [this.clientWidth,this.clientHeight];
     // This vector scales an image unit to a viewscale unit
     this._resolutionLoc = gl.getUniformLocation(this.imageShaderProg, "u_Resolution");
     gl.uniform2fv(this._resolutionLoc,resolution);
-
-    this.viewFlip=this.clientHeight;
-    this._viewFlipLoc = gl.getUniformLocation(this.imageShaderProg, "u_ViewFlip");
-    gl.uniform1f(this._viewFlipLoc,this.viewFlip);
 
     // Image texture is in slot 0
     this._imageTexLoc = gl.getUniformLocation(this.imageShaderProg,
@@ -1066,23 +1095,23 @@ export class DrawGL
     // Make sure the vertices don't go off the page.
     // Left or top
     var bgCoords =[];
-    vertices[0] = Math.min(Math.max(start[0]-marginX,0),this.clientWidth);
-    vertices[1] = Math.min(Math.max(start[1]-marginY,0), this.clientHeight);
-    bgCoords[0] = globalizeTexCoord([vertices[0]/this.clientWidth,vertices[1]/this.clientHeight]);
+    vertices[0] = this.normalizeVertexX(start[0]-marginX);
+    vertices[1] = this.normalizeVertexY(start[1]-marginY);
+    bgCoords[0] = globalizeTexCoord([vertices[0], vertices[1]]);
 
 
-    vertices[2] = Math.min(Math.max(finish[0]-marginX,0), this.clientWidth);
-    vertices[3] = Math.min(Math.max(finish[1]-marginY,0), this.clientHeight);
-    bgCoords[1] = globalizeTexCoord([vertices[2]/this.clientWidth,vertices[3]/this.clientHeight]);
+    vertices[2] = this.normalizeVertexX(finish[0]-marginX);
+    vertices[3] = this.normalizeVertexY(finish[1]-marginY);
+    bgCoords[1] = globalizeTexCoord([vertices[2],vertices[3]]);
 
     // Right or bottoms
-    vertices[4] = Math.min(Math.max(finish[0]+marginX,0),this.clientWidth);
-    vertices[5] = Math.min(Math.max(finish[1]+marginY,0), this.clientHeight);
-    bgCoords[2] = globalizeTexCoord([vertices[4]/this.clientWidth,vertices[5]/this.clientHeight]);
+    vertices[4] = this.normalizeVertexX(finish[0]+marginX);
+    vertices[5] = this.normalizeVertexY(finish[1]+marginY);
+    bgCoords[2] = globalizeTexCoord([vertices[4],vertices[5]]);
 
-    vertices[6] = Math.min(Math.max(start[0]+marginX,0),this.clientWidth);
-    vertices[7] = Math.min(Math.max(start[1]+marginY,0), this.clientHeight);
-    bgCoords[3] = globalizeTexCoord([vertices[6]/this.clientWidth,vertices[7]/this.clientHeight]);
+    vertices[6] = this.normalizeVertexX(start[0]+marginX);
+    vertices[7] = this.normalizeVertexY(start[1]+marginY);
+    bgCoords[3] = globalizeTexCoord([vertices[6],vertices[7]]);
 
     // Pen color is the same for each vertex pair (!)
     for (idx = 0; idx < (vertices.length/2); idx++)
@@ -1179,9 +1208,9 @@ export class DrawGL
     var bgCoords =[];
     for (let bg_idx = 0, s_idx = 0; s_idx < points.length; s_idx+=2, bg_idx++)
     {
-      vertices[s_idx] = Math.min(points[s_idx],this.clientWidth);
-      vertices[s_idx+1] = Math.min(points[s_idx+1], this.clientHeight);
-      bgCoords[bg_idx] = globalizeTexCoord([vertices[s_idx]/this.clientWidth,vertices[s_idx+1]/this.clientHeight]);
+      vertices[s_idx] = this.normalizeVertexX(points[s_idx]);
+      vertices[s_idx+1] = this.normalizeVertexY(points[s_idx+1]);
+      bgCoords[bg_idx] = globalizeTexCoord([vertices[s_idx],vertices[s_idx+1]]);
     }
     
 

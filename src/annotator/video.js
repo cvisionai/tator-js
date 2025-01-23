@@ -360,6 +360,15 @@ export class VideoCanvas extends AnnotationCanvas {
       }));
   }
 
+  sendPlaybackNotReady() {
+    this.dispatchEvent(new CustomEvent(
+      "playbackNotReady",
+      {
+        composed: true,
+        detail: {playbackReadyId: this._waitId},
+      }));
+  }
+
   startDownload(streaming_files, offsite_config, info_only)
   {
     if (this._children)
@@ -2567,7 +2576,7 @@ export class VideoCanvas extends AnnotationCanvas {
     let found_it = false;
     for (let idx = 0; idx < ranges.length; idx++)
     {
-      if (reqFrame >= ranges.start(idx) && reqFrame <= ranges.end(idx))
+      if (this_time >= ranges.start(idx) && this_time <= ranges.end(idx))
       {
         timeToEnd = ranges.end(idx) - this_time;
         found_it = true;
@@ -2861,7 +2870,21 @@ export class VideoCanvas extends AnnotationCanvas {
         }
       }
 
-      if (needMoreData && !this._onDemandFinished && this._onDemandPendingDownloads == 0)// && !(this._direction == Direction.STOPPED && this._onDemandPlaybackReady))
+      if (needMoreData && this._onDemandFinished && this._onDemandPendingDownloads == 0)
+      {
+        this.sendPlaybackNotReady();
+        console.warn(`I need more data, but the downloader is done.`);
+        video.resetOnDemandBuffer().then(() => {
+          this._onDemandDownloadTimeout = setTimeout(() => {
+            this._onDemandInit = false;
+            this._onDemandInitSent = false;
+            this._onDemandPlaybackReady = false;
+            this._onDemandFinished = false;
+            this.onDemandDownload()}, 50);
+          });
+        return;
+      }
+      else if (needMoreData && !this._onDemandFinished && this._onDemandPendingDownloads == 0)// && !(this._direction == Direction.STOPPED && this._onDemandPlaybackReady))
       {
         // Kick of the download worker to get the next onDemand segments
         //console.log(`(ID:${this._videoObject.id}) Requesting more onDemand data (pendingDownloads/playbackReady/ranges.length): ${this._onDemandPendingDownloads} ${this._onDemandPlaybackReady} ${ranges.length}`);

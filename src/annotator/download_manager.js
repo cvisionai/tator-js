@@ -250,6 +250,7 @@ export class DownloadManager
     {
       console.log("onDemand finished downloading. Reached end of video.");
       this._parent._onDemandFinished = true;
+      this._parent._onDemandPendingDownloads = 0;
       this._parent._onDemandPlaybackReady = true; //if we reached the end, we are done.
       this._parent.sendPlaybackReady();
     }
@@ -259,7 +260,7 @@ export class DownloadManager
       if (this._parent._onDemandId != msg.data['id'])
       {
         console.warn(`On-Demand: Expected ${this._parent._onDemandId} but got ${msg.data['id']}`);
-        this._onDemandPendingDownloads -= 1;
+        this._parent._onDemandPendingDownloads -= 1;
         return;
       }
       var idx = 0;

@@ -1787,37 +1787,36 @@ export class AnnotationCanvas extends HTMLElement
         let vStretch = (maxHeight/this._canvas.height);
         if (hStretch > 1 || vStretch > 1)
         {
-          this._canvas.width = maxWidth;
-          this._canvas.height = maxHeight;
+          this._draw.resizeViewport(maxWidth, maxHeight);
         }
       }
       else
       {
-        this._canvas.width = this._dims[0];
-        this._canvas.height = this._dims[1];
+        this._draw.resizeViewport(this._dims[0], this._dims[1]);
       }
       this._canvas.style.maxHeight=`${maxHeight}px`;
       this.parentElement.style.maxWidth=`${maxWidth}px`;
       this._domParents.forEach(parent =>
-                               {
-                                 var obj = parent.object;
-                                 var align = parent.alignTo;
-                                 if (align)
-                                 {
-                                   var style=getComputedStyle(obj,null)
-                                   const end = align.offsetLeft + align.offsetWidth;
-                                   const width = end - obj.offsetLeft -
-                                         parseInt(style.paddingRight);
-                                   obj.style.maxWidth=`${width}px`;
-                                 }
-                                 else
-                                 {
-                                   obj.style.maxWidth=`${maxWidth}px`;
-                                 }
-                               });
+                              {
+                                var obj = parent.object;
+                                var align = parent.alignTo;
+                                if (align)
+                                {
+                                  var style=getComputedStyle(obj,null)
+                                  const end = align.offsetLeft + align.offsetWidth;
+                                  const width = end - obj.offsetLeft -
+                                        parseInt(style.paddingRight);
+                                  obj.style.maxWidth=`${width}px`;
+                                }
+                                else
+                                {
+                                  obj.style.maxWidth=`${maxWidth}px`;
+                                }
+                              });
     }
-    this._draw.resizeViewport(this._canvas.width, this._canvas.height);
     this._textOverlay.resize(this.clientWidth, this.clientHeight);
+    this.refresh();
+    this.dispatchEvent(new Event("canvasResized"));
   }
 
   setupResizeHandler(dims, numGridRows, heightPadObject)
@@ -1830,84 +1829,6 @@ export class AnnotationCanvas extends HTMLElement
       this.heightPadObject = heightPadObject;
     }
 
-    const ratio=dims[0]/dims[1];
-    var that = this;
-    var resizeHandler = function()
-    {
-      if (window.MODE == "FULLSCREEN") {
-        if (this._gridRows) {
-          if (window.innerHeight * ratio < window.innerWidth) {
-            this._canvas.height = window.innerHeight / this._gridRows;
-          } else {
-            this._canvas.height = window.innerWidth / ratio / this._gridRows;
-          }
-          this._canvas.width = this._canvas.height * ratio;
-        } else {
-          if (window.innerHeight * ratio < window.innerWidth) {
-            this._canvas.height = window.innerHeight;
-            this._canvas.width = window.innerHeight * ratio;
-            this.style.top = "0px"
-            this.style.left = Math.floor(window.innerWidth / 2 - this._canvas.width / 2) + "px";
-          } else {
-            this._canvas.height = window.innerWidth / ratio;
-            this._canvas.width = window.innerWidth;
-            this.style.top = Math.floor(window.innerHeight / 2 - this._canvas.height / 2) + "px";
-            this.style.left = "0px"
-          }
-          this.style.width = this._canvas.width + "px";
-          this.style.height = this._canvas.height + "px";
-        }
-      } else {
-        var maxHeight;
-        if (that._gridRows) {
-          maxHeight = (window.innerHeight - that.heightPadObject.height) / that._gridRows;
-        }
-        else {
-           maxHeight = window.innerHeight - that.heightPadObject.height;
-        }
-        let maxWidth = maxHeight*ratio;
-
-        // If stretch mode is on, stretch the canvas
-        if (that._stretch)
-        {
-          let hStretch = (maxWidth/that._canvas.width);
-          let vStretch = (maxHeight/that._canvas.height);
-          if (hStretch > 1 || vStretch > 1)
-          {
-            that._canvas.width = maxWidth;
-            that._canvas.height = maxHeight;
-          }
-        }
-        else
-        {
-          that._canvas.width = that._dims[0];
-          that._canvas.height = that._dims[1];
-        }
-        that._canvas.style.maxHeight=`${maxHeight}px`;
-        that.parentElement.style.maxWidth=`${maxWidth}px`;
-        that._domParents.forEach(parent =>
-                                 {
-                                   var obj = parent.object;
-                                   var align = parent.alignTo;
-                                   if (align)
-                                   {
-                                     var style=getComputedStyle(obj,null)
-                                     const end = align.offsetLeft + align.offsetWidth;
-                                     const width = end - obj.offsetLeft -
-                                           parseInt(style.paddingRight);
-                                     obj.style.maxWidth=`${width}px`;
-                                   }
-                                   else
-                                   {
-                                     obj.style.maxWidth=`${maxWidth}px`;
-                                   }
-                                 });
-      }
-      that._draw.resizeViewport(this._canvas.width, this._canvas.height);
-      that._textOverlay.resize(that.clientWidth, that.clientHeight);
-      that.dispatchEvent(new Event("canvasResized"));
-    }
-
     // Set up resize handler.
     window.addEventListener("resize", () => {
       clearTimeout(this._resizeTimer);
@@ -1916,7 +1837,6 @@ export class AnnotationCanvas extends HTMLElement
         return true;
       }
       this.forceSizeChange();
-      this.dispatchEvent(new Event("canvasResized"));
       // Finalize the resize
       this._resizeTimer = setTimeout(() => {
         //this._draw.resizeViewport(dims[0], dims[1]);
@@ -1929,8 +1849,7 @@ export class AnnotationCanvas extends HTMLElement
           });
         }
         this.forceSizeChange();
-        this.dispatchEvent(new Event("canvasResized"));
-      }, 100);
+      }, 250);
     });
   }
 
@@ -5248,8 +5167,6 @@ export class AnnotationCanvas extends HTMLElement
     if (this._offscreen.width != width ||
         this._offscreen.height != height)
     {
-      this._offscreen.width = width;
-      this._offscreen.height = height;
       this._offscreenDraw.resizeViewport(width, height);
     }
     this._offscreenDraw.clear();
