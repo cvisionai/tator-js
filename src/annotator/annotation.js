@@ -1770,6 +1770,7 @@ export class AnnotationCanvas extends HTMLElement
         this.style.width = this._canvas.width + "px";
         this.style.height = this._canvas.height + "px";
       }
+      this._draw.resizeViewport(this._canvas.width, this._canvas.height);
     } else {
       var maxHeight;
       if (this._gridRows) {
