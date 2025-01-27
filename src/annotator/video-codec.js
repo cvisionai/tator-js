@@ -456,6 +456,7 @@ class TatorVideoManager {
   //  Nth second based on the summary level
   set currentTime(video_time)
   {
+    this._codec_worker.onmessage = this._on_message.bind(this);
     // If we are approximating seeking, we should land on the nearest buffered time
     if (this.summaryLevel)
     {
@@ -672,6 +673,8 @@ class TatorVideoManager {
 
   play()
   {
+    // Ensure the async handler is setup!
+    this._codec_worker.onmessage = this._on_message.bind(this);
     this._playing = true;
     this._codec_worker.postMessage(
       {"type": "play"});
