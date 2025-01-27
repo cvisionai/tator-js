@@ -1345,6 +1345,11 @@ export class VideoCanvas extends AnnotationCanvas {
     {
       frame = this.currentFrame();
     }
+    if (this._videoElement == undefined)
+    {
+      console.error("No video element defined yet.");
+      return;
+    }
     var seek_time=this.frameToTime(frame, this._seek_idx);
     var play_time=this.frameToTime(frame, this._play_idx);
     var scrub_time=this.frameToTime(frame, this._scrub_idx);
