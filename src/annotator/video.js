@@ -609,17 +609,19 @@ export class VideoCanvas extends AnnotationCanvas {
         {
           let startFrame = this.timeToFrame(ranges.start(idx), null, idx);
           let endFrame = this.timeToFrame(ranges.end(idx), null, idx);
+          // Only account for range if it is within the bounds of the video
+          // But percent loaded is true regardless for scrub cases
           if (this.currentFrame() >= startFrame && this.currentFrame() <= endFrame)
           {
             ranges_list.push([startFrame, endFrame]);
-            if (endFrame > maxFrame)
-            {
-              maxFrame = endFrame;
-            }
+          }
+          if (endFrame > maxFrame)
+          {
+            maxFrame = endFrame;
           }
         }
 
-        if (idx == this._play_idx)
+        if (idx == this._play_idx && idx != this._scrub_idx)
         {
           this.dispatchEvent(new CustomEvent("onDemandDetail",
                                           {composed: true,
