@@ -46,7 +46,7 @@ export class DownloadManager
     {
       if (this._parent._seekFrame != msg.data["frame"])
       {
-        console.warn(`Out of order seek operations detected. Expected=${this.seekFrame}, Got=${msg.data["frame"]}`);
+        console.warn(`Out of order seek operations detected. Expected=${this._parent._seekFrame}, Got=${msg.data["frame"]}`);
         return;
       }
       msg.data["buffer"].fileStart = msg.data["startByte"];
