@@ -1867,6 +1867,12 @@ export class VideoCanvas extends AnnotationCanvas {
 
   _playGenericScrub(direction)
   {
+    this.dispatchEvent(new CustomEvent(
+      "playing",
+      {
+        composed: true,
+        detail: {},
+      }));
     console.log("Setting playback direction " + direction);
     this._direction=direction;
     this._active_idx = this._scrub_idx;
@@ -1988,6 +1994,12 @@ export class VideoCanvas extends AnnotationCanvas {
    */
   _playGenericOnDemand(direction)
   {
+    this.dispatchEvent(new CustomEvent(
+      "playing",
+      {
+        composed: true,
+        detail: {},
+      }));
     var that = this;
     console.log(`_playGenericOnDemand (ID:${this._videoObject.id}) Setting direction ${direction}`);
     this._direction=direction;
@@ -3059,12 +3071,6 @@ export class VideoCanvas extends AnnotationCanvas {
 
   play()
   {
-    this.dispatchEvent(new CustomEvent(
-      "playing",
-      {
-        composed: true,
-        detail: {},
-      }));
     this._effectManager.grayOut(1000);
     this._playEffect = true;
     document.body.style.cursor = "progress";
@@ -3078,13 +3084,13 @@ export class VideoCanvas extends AnnotationCanvas {
       this._playCb.forEach(cb => {cb();});
       if (this._playbackRate > RATE_CUTOFF_FOR_ON_DEMAND)
       {
-        this._playGenericScrub(Direction.FORWARD);
+        this.seekFrame(this.currentFrame(), () => {this._playGenericScrub(Direction.FORWARD);}, false, "scrub");
       }
       else
       {
         if (this._play_idx == this._scrub_idx && this.videoBuffer(this.currentFrame(), "scrub") != null || this._videoElement[this._play_idx]._compat == true)
         {
-          this._playGenericScrub(Direction.FORWARD);
+          this.seekFrame(this.currentFrame(), () => {this._playGenericScrub(Direction.FORWARD);}, false, "scrub");
         }
         else
         {
@@ -3097,12 +3103,6 @@ export class VideoCanvas extends AnnotationCanvas {
 
   playBackwards()
   {
-    this.dispatchEvent(new CustomEvent(
-      "playing",
-      {
-        composed: true,
-        detail: {},
-      }));
     if (this._dispFrame <= 0)
     {
       return false;
@@ -3116,7 +3116,7 @@ export class VideoCanvas extends AnnotationCanvas {
       //}
       this._direction = Direction.BACKWARDS
       this._playCb.forEach(cb => {cb();});
-      this._playGenericScrub(Direction.BACKWARDS);
+      this.seekFrame(this.currentFrame(), () => {this._playGenericScrub(Direction.BACKWARDS);}, false, "scrub");
       return true;
     }
   }
