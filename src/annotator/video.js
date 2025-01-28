@@ -322,7 +322,7 @@ export class VideoCanvas extends AnnotationCanvas {
     }
     this._effectManager.clear();
     this._draw.beginDraw();
-    return this.gotoFrame(this._dispFrame, forceSeekBuffer);
+    return this.gotoFrame((this._seekFrame != null ? this._seekFrame : this._dispFrame), forceSeekBuffer);
   }
 
   currentFrame()
@@ -1593,6 +1593,7 @@ export class VideoCanvas extends AnnotationCanvas {
         // by waiting for a signal off the video + then scheduling an animation frame.
         video.oncanplay=function()
         {
+          that._seekFrame = null;
           if (video.summaryLevel)
           {
             frame = that.timeToFrame(video.currentTime, null, video.named_idx);
