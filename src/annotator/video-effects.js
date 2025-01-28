@@ -73,7 +73,6 @@ export class EffectManager
 
   clear()
   {
-    console.info("Clearing effects");
     if (this._animator != null)
     {
       window.cancelAnimationFrame(this._animator);
