@@ -1669,6 +1669,7 @@ export class VideoCanvas extends AnnotationCanvas {
 
         if (downloadSeekFrame && that._dlWorker)
         {
+          that._seekFrame = frame;
           that._dlWorker.postMessage(
             {"type": "seek",
              "frame": frame,
