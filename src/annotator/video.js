@@ -2409,17 +2409,22 @@ export class VideoCanvas extends AnnotationCanvas {
     return 7.5 * Math.min(RATE_CUTOFF_FOR_ON_DEMAND, Math.max(1,this._playbackRate)) * fps_swag;
   }
 
-  // Calculate if the on-demand buffer is present and has sufficient runway to play.
-  // Returns "yes", false, "more"
-  onDemandBufferAvailable(frame)
+
+  _isBufferAvailable(frame, buf_idx)
   {
     if (frame == undefined)
     {
       frame = this._dispFrame;
     }
+
+    let buf_type = "play";
+    if (buf_idx == this._scrub_idx)
+    {
+      buf_type = "scrub-only";
+    }
     let appendThreshold = this._calculateReadyThreshold();
-    let video = this.videoBuffer(frame, "play", true);
-    if (video == null || this._videoElement[this._play_idx]._compat == true)
+    let video = this.videoBuffer(frame, buf_type, true);
+    if (video == null || this._videoElement[buf_idx]._compat == true)
     {
       return false;
     }
@@ -2427,9 +2432,9 @@ export class VideoCanvas extends AnnotationCanvas {
     {
       let timeToEnd = null;
       var ranges = video.buffered;
-      const absEnd = this.frameToTime(this._numFrames-1, this._play_idx);
-      const absStart = this.frameToTime(0, this._play_idx);
-      const currentTime = this.frameToTime(frame, this._play_idx);
+      const absEnd = this.frameToTime(this._numFrames-1, buf_idx);
+      const absStart = this.frameToTime(0, buf_idx);
+      const currentTime = this.frameToTime(frame, buf_idx);
       let timeToAbsEnd = absEnd - currentTime;
       for (var rangeIdx = 0; rangeIdx < ranges.length; rangeIdx++)
       {
@@ -2465,12 +2470,17 @@ export class VideoCanvas extends AnnotationCanvas {
       return (timeToEnd >= appendThreshold ? "yes" : "more");
     }
   }
+  // Calculate if the on-demand buffer is present and has sufficient runway to play.
+  // Returns "yes", false, "more"
+  onDemandBufferAvailable(frame)
+  {
+    return this._isBufferAvailable(frame, this._play_idx);
+  }
 
   scrubBufferAvailable(frame)
   {
-    return this.videoBuffer(frame, "scrub") != null;
+    return this._isBufferAvailable(frame, this._scrub_idx);
   }
-
 
   // Returns true if on-demand buffer check + delay is required based on current settings.
   bufferDelayRequired()
