@@ -1362,7 +1362,7 @@ export class VideoCanvas extends AnnotationCanvas {
     }
     if (this._videoElement == undefined)
     {
-      console.error("No video element defined yet.");
+      console.warn("No video element defined yet.");
       return;
     }
     var seek_time=this.frameToTime(frame, this._seek_idx);
@@ -1487,6 +1487,12 @@ export class VideoCanvas extends AnnotationCanvas {
    */
   seekFrame(frame, callback, forceSeekBuffer, bufferType, forceSeekDownload)
   {
+    if (this._videoElement == undefined)
+    {
+      console.warn("No video element defined yet.");
+      return;
+    }
+    
     // If the goto frame precedes the 1st frame adjust it.
     if (frame < this._firstFrame)
     {
