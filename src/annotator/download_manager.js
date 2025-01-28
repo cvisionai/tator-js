@@ -160,11 +160,6 @@ export class DownloadManager
         {
           if (msg.data["buf_idx"] == this._parent._scrub_idx)
           {
-            this._parent.dispatchEvent(new CustomEvent("bufferLoaded",
-                                              {composed: true,
-                                                detail: {"percent_complete":msg.data["percent_complete"]}
-                                              }));
-
             if (this._parent._disableAutoDownloads && this._parent._scrubDownloadCount >= 2) {
               return;
             }

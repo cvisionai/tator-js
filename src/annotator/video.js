@@ -598,16 +598,13 @@ export class VideoCanvas extends AnnotationCanvas {
         }
       }
       p.onBuffered = () => {
-        if (idx == this._scrub_idx)
-        {
-          return;
-        }
-        if (idx != this._play_idx)
+        if (idx != this._play_idx && idx != this._scrub_idx)
         {
           return;
         }
         const ranges = p.playBuffer().buffered;
         let ranges_list = [];
+        let maxFrame = 0;
         for (let idx = 0; idx < ranges.length; idx++)
         {
           let startFrame = this.timeToFrame(ranges.start(idx), null, idx);
@@ -615,11 +612,27 @@ export class VideoCanvas extends AnnotationCanvas {
           if (this.currentFrame() >= startFrame && this.currentFrame() <= endFrame)
           {
             ranges_list.push([startFrame, endFrame]);
+            if (endFrame > maxFrame)
+            {
+              maxFrame = endFrame;
+            }
           }
         }
-        this.dispatchEvent(new CustomEvent("onDemandDetail",
+
+        if (idx == this._play_idx)
+        {
+          this.dispatchEvent(new CustomEvent("onDemandDetail",
                                           {composed: true,
                                             detail: {"ranges": ranges_list}}));
+        }
+
+        if (idx == this._scrub_idx)
+        {
+          this.dispatchEvent(new CustomEvent("bufferLoaded",
+            {composed: true,
+              detail: {"percent_complete": maxFrame/this._numFrames}}
+            ));
+        }
       };
       return p;
     }
