@@ -10,6 +10,7 @@ export class EffectManager
 
   grayOut(delay_ms)
   {
+    this._cancelled = false;
     if (delay_ms == undefined)
     {
       delay_ms = 150;
@@ -20,6 +21,10 @@ export class EffectManager
     
     this._idx = 1;
     let prog = ()=>{
+      if (this._cancelled == true)
+      {
+        return;
+      }
       this._draw.beginDraw();
       //this._draw.fillPolygon([[0,0], [maxX,0],[maxX,maxY],[0,maxY]], 0, color.BLACK, 75, [1.0,Math.atan(this._idx/10)*0.0025,0,0]);
       const delay = Math.floor(delay_ms / 16);
@@ -68,11 +73,13 @@ export class EffectManager
 
   clear()
   {
+    console.info("Clearing effects");
     if (this._animator != null)
     {
       window.cancelAnimationFrame(this._animator);
       this._animator = null;
       this._idx = -1;
+      this._cancelled = true;
     }
     this._draw.beginDraw();
   }
