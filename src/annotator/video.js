@@ -2115,6 +2115,7 @@ export class VideoCanvas extends AnnotationCanvas {
     else
     {
       console.warn(`Player Stalled. BD=${this._draw.bufferDepth}`);
+      this.dispatchEvent(new CustomEvent("playbackStalled", {composed: true}));
       this._stallCount += 1;
       // Done playing, clear playback.
       if (this._audioEligible && this._audioPlayer.paused)
