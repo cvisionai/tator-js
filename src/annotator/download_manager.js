@@ -41,11 +41,6 @@ export class DownloadManager
     if (type == "finished")
     {
       console.info("Stopping download worker.");
-      this._parent.dispatchEvent(new CustomEvent("bufferLoaded",
-        {composed: true,
-        detail: {"percent_complete":1.00}
-      }
-      ));
     }
     else if (type == "seek_result")
     {
