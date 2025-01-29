@@ -17,6 +17,16 @@ export class MotionComp {
       if (this._times.length > this._TRIALS) {
         this.calculateMonitorFPS();
         console.info(`Calculated FPS interval = ${this._interval} (${this._monitorFps})`);
+      
+        // If we have the URL param of "forceFPS" use that for monitorFPS instead and set
+        // interval accordingly
+        let urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('forceFPS') == true)
+        {
+          this._monitorFps = parseInt(urlParams.get('forceFPS'));
+          this._interval = 1000.0 / this._monitorFps;
+          console.warn(`Forcing FPS interval = ${this._interval} (${this._monitorFps})`);
+        }
       }
 
       else {
