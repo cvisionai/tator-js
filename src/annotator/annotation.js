@@ -1755,6 +1755,8 @@ export class AnnotationCanvas extends HTMLElement
           this._canvas.height = window.innerWidth / ratio / this._gridRows;
         }
         this._canvas.width = this._canvas.height * ratio;
+        this._canvas.style.maxHeight=`${this._canvas.height}px`;
+        this.parentElement.style.maxWidth=`${this._canvas.width}px`;
       } else {
         if (window.innerHeight * ratio < window.innerWidth) {
           this._canvas.height = window.innerHeight;
