@@ -5172,6 +5172,8 @@ export class AnnotationCanvas extends HTMLElement
     {
       this._offscreenDraw.resizeViewport(width, height);
     }
+    // Note: this._offscreen.width and this._offscreen.height
+    //       are updated within this._offscreenDraw.resizeViewport
     this._offscreenDraw.clear();
     this._offscreenDraw.pushImage(frameIdx,
                                   source,

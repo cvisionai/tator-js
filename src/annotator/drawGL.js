@@ -486,6 +486,9 @@ export class DrawGL
       gl.viewport(0,0,width, height);
     }
 
+    this.viewport.width = this.clientWidth;
+    this.viewport.height = this.clientHeight;
+
     //Allocate MSAA renderbuffer (4x multisample)
     gl.bindRenderbuffer(gl.RENDERBUFFER, this.msaaBuffer);
     gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4,
