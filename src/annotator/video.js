@@ -1795,11 +1795,11 @@ export class VideoCanvas extends AnnotationCanvas {
   {
     if (this._direction != Direction.STOPPED)
     {
-      return;
+      return new Promise((resolve,reject)=>{reject();});
     }
 
     if (frameIdx < 0 || frameIdx >= this._numFrames) {
-      return;
+      return new Promise((resolve,reject)=>{reject();});
     }
 
     // In the event some out of band drawing has happened, make sure to clear any latent
