@@ -1490,7 +1490,7 @@ export class VideoCanvas extends AnnotationCanvas {
     if (this._videoElement == undefined)
     {
       console.warn("No video element defined yet.");
-      return;
+      return new Promise((resolve, reject)=>{reject();});
     }
     
     // If the goto frame precedes the 1st frame adjust it.
@@ -1605,7 +1605,7 @@ export class VideoCanvas extends AnnotationCanvas {
             frame = that.timeToFrame(video.currentTime, null, video.named_idx);
             if (frame == that._lastSummaryFrame)
             {
-              return;
+              return new Promise((resolve, reject) => {resolve();});
             }
             that._lastSummaryFrame = frame;
           }
