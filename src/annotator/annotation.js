@@ -1469,7 +1469,7 @@ export class AnnotationCanvas extends HTMLElement
         {menuText: text,
          stateType: stateTypeObj});
     }
-    else {
+    else if (stateTypeObj?.extended_info?.drawable !== false) {
       var text = "Create new " + stateTypeObj.name;
       this._contextMenuNone.addMenuEntry(text, this.contextMenuCallback.bind(this));
       this._createNewStateFrameMenuEntries.push(
