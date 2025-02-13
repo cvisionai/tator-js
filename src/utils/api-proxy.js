@@ -33,8 +33,8 @@ async function getOrRefreshAccessToken() {
       const issueTime = new Date(storedIssueTime);
       const deltaSeconds = Math.floor((currentTime.getTime() - issueTime.getTime()) / 1000);
 
-      // If the token is within 30 seconds of expiring, start a refresh.
-      if (deltaSeconds > (expiresIn - 30)) {
+      // If 75% of expiration time has passed, refresh the token.
+      if (deltaSeconds > (0.75 * expiresIn)) {
         console.log(`Starting token refresh, ${deltaSeconds} seconds since token issuance...`);
 
         // Only initiate a refresh if one is not already in progress.
