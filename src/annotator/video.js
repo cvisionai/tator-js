@@ -1670,7 +1670,7 @@ export class VideoCanvas extends AnnotationCanvas {
             document.body.style.cursor = null;
             console.warn("Network Seek expired");
             that.refresh(false);
-            reject();
+            reject(new Error("Network seek timeout"));
           }, that._networkSeekTimeout);
         }
 
@@ -1795,11 +1795,11 @@ export class VideoCanvas extends AnnotationCanvas {
   {
     if (this._direction != Direction.STOPPED)
     {
-      return new Promise((resolve,reject)=>{reject();});
+      return new Promise((resolve,reject)=>{reject(new Error(`Video is not stopped`));});
     }
 
     if (frameIdx < 0 || frameIdx >= this._numFrames) {
-      return new Promise((resolve,reject)=>{reject();});
+      return new Promise((resolve,reject)=>{reject(new Error(`Requested ${frameIdx} which is either < 0 or greater than num_frames=${this._numFrames}`));});
     }
 
     // In the event some out of band drawing has happened, make sure to clear any latent
