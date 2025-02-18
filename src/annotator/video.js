@@ -1665,7 +1665,7 @@ export class VideoCanvas extends AnnotationCanvas {
               // Current seek frame is still not in buffer, allow redownload
               that._lastDownloadSeekFrame = -1;
             }
-            that._seekFrame = -1;
+            that._seekFrame = null;
             that._seek_expire = null;
             document.body.style.cursor = null;
             console.warn("Network Seek expired");
