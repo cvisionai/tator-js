@@ -68,7 +68,9 @@ function uploadMulti(project, stream, size, info, numChunks, chunkSize, progress
       return parts;
     })
     .then(parts => {
-      progressCallback(Math.floor(100 * idx / (numChunks - 1)));
+      if (progressCallback !== null) {
+        progressCallback(Math.floor(100 * idx / (numChunks - 1)));
+      }
       return parts;
     });
   }
