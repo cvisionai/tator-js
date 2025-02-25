@@ -159,7 +159,7 @@ class TatorVideoBuffer {
     if (val == true)
     {
       // Re-scan file on pauses to catch any keyframes
-      setTimeout(() =>
+      this._idleTimeout = setTimeout(() =>
       {
         if (this.scrubbing || this._playing)
         {
@@ -843,6 +843,7 @@ class TatorVideoBuffer {
   {
     this._low_latency = low_latency;
     this._current_cursor = video_time;
+    this._pendingSeek = null;
     //console.info(`${performance.now()} ${this._name} now @ ${this._current_cursor}: ${informational}`);
     if (informational)
     {
@@ -989,7 +990,7 @@ class TatorVideoBuffer {
           let mp4File = this._fileForOffset(timestamp);
           mp4File.seek(0);
           mp4File.start();
-          this._pendingSeek = this._current_cursor;
+          this._pendingSeek = null;
           resolve();
         });
       }));
