@@ -6,8 +6,8 @@ export async function fetchRetry(url, options, retries = 5, backoff = 800) {
     if (response.ok) {
       return response;
     }
-    // 403's won't change if you try again
-    if (response.status === 403)
+    // 403's and 401's won't change if you try again
+    if (response.status === 403 || response.status === 401)
     {
       return response;
     }
