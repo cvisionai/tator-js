@@ -1741,10 +1741,10 @@ export class AnnotationCanvas extends HTMLElement
   /**
    * Utilizes this._dims, this._gridRow, and this.heightPadObject
    */
-  forceSizeChange() {
+  forceSizeChange(forceSeek) {
     if (this._inhibitResize)
     {
-      return true;
+      return new Promise((resolve => {resolve();}));
     }
     const ratio=this._dims[0]/this._dims[1];
     if (window.MODE == "FULLSCREEN") {
@@ -1816,8 +1816,40 @@ export class AnnotationCanvas extends HTMLElement
                               });
     }
     this._textOverlay.resize(this.clientWidth, this.clientHeight);
-    this.refresh();
-    this.dispatchEvent(new Event("canvasResized"));
+    let promise = new Promise((resolve) => {
+
+      if (this.isPaused() == true)
+      {
+        this.refresh(forceSeek).then(() => {
+          this._textOverlay.resize(this.clientWidth, this.clientHeight);
+          setTimeout(() => {
+            this._textOverlay.resize(this.clientWidth, this.clientHeight);
+          }, 100);
+          setTimeout(() => {
+            this._textOverlay.resize(this.clientWidth, this.clientHeight);
+          }, 500);
+          if (window.commandedResize)
+          {
+            window.commandedResize(); // inform resize is complete
+          }
+          this.dispatchEvent(new Event("canvasResized"));
+          resolve();
+        });
+      }
+      else
+      {
+        this.dispatchEvent(new Event("canvasResized"));
+        this._textOverlay.resize(this.clientWidth, this.clientHeight);
+        setTimeout(() => {
+          this._textOverlay.resize(this.clientWidth, this.clientHeight);
+        }, 100);
+        setTimeout(() => {
+          this._textOverlay.resize(this.clientWidth, this.clientHeight);
+        }, 500);
+        resolve();
+      }
+    });
+    return promise;
   }
 
   setupResizeHandler(dims, numGridRows, heightPadObject)
@@ -1837,20 +1869,28 @@ export class AnnotationCanvas extends HTMLElement
       {
         return true;
       }
-      this.forceSizeChange();
-      // Finalize the resize
+
+      let timeout = 250;
+      if (window.commandedResize != null)
+      {
+        timeout = 0;
+      }
+      // Only resize once the resize event is over to avoid multiple calls
       this._resizeTimer = setTimeout(() => {
         //this._draw.resizeViewport(dims[0], dims[1]);
         if (this.isPaused() == true)
         {
           this._hqFallbackTimer = setTimeout(() => {this.refresh(true)}, 3000);
-          this.refresh(false).then(() => {
+          this.forceSizeChange(false).then(() => {
             clearTimeout(this._hqFallbackTimer);
-            this.refresh(true);
+            this.forceSizeChange(true);
           });
         }
-        this.forceSizeChange();
-      }, 250);
+        else
+        {
+          this.forceSizeChange();
+        }
+      }, timeout);
     });
   }
 
