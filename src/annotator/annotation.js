@@ -1036,7 +1036,7 @@ export class AnnotationCanvas extends HTMLElement
        "background": "rgba(0,0,0,0.33)"};
     this._showTextOverlays = true;
     this._gridRows = 0;
-    this._stretch = false;
+    this._stretch = true;
     this._overrideState = null; // Used to pop back into a state during a zoom/pan
 
     this._shortcutsDisabled = false;
