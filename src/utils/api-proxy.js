@@ -3,7 +3,7 @@ import { fetchRetry } from "./fetch-retry.js";
 // A shared promise variable for an in-progress token refresh.
 let tokenRefreshPromise = null;
 
-async function getOrRefreshAccessToken() {
+async function getOrRefreshAccessToken(forceRefresh = false) {
   let accessToken = null;
 
   // If running inside an iframe, inherit configuration from the parent.
@@ -27,67 +27,63 @@ async function getOrRefreshAccessToken() {
     const storedIssueTime = localStorage.getItem("issue_time");
     const expiresIn = Number(localStorage.getItem("expires_in"));
 
-    if (accessToken !== null && storedIssueTime) {
-      // Calculate the elapsed time (in seconds) since the token was issued.
-      const currentTime = new Date();
-      const issueTime = new Date(storedIssueTime);
-      const deltaSeconds = Math.floor((currentTime.getTime() - issueTime.getTime()) / 1000);
+    // Determine if refresh is needed
+    const shouldRefresh =
+      forceRefresh ||
+      !accessToken ||
+      !storedIssueTime ||
+      (storedIssueTime && Math.floor((new Date().getTime() - new Date(storedIssueTime).getTime()) / 1000) > 0.75 * expiresIn);
 
-      // If 75% of expiration time has passed, refresh the token.
-      if (deltaSeconds > (0.75 * expiresIn)) {
-        console.log(`Starting token refresh, ${deltaSeconds} seconds since token issuance...`);
-
-        // Only initiate a refresh if one is not already in progress.
-        if (tokenRefreshPromise === null) {
-          tokenRefreshPromise = (async () => {
-            try {
-              const response = await fetchRetry('/refresh', { credentials: "same-origin" });
-              if (!response.ok) {
-                console.log(`Token refresh failed! Session may have ended.`);
-                // Clean up token-related data.
-                localStorage.removeItem("access_token");
-                localStorage.removeItem("issue_time");
-                localStorage.removeItem("expires_in");
-                localStorage.removeItem("id_token");
-                throw new Error("Refresh failed!");
-              }
-
-              const data = await response.json();
-              console.log(`Token refresh succeeded! New token valid for ${data.expires_in} seconds.`);
-
-              // Update localStorage with the new token data.
-              const newIssueTime = new Date();
-              localStorage.setItem("access_token", data.access_token);
-              localStorage.setItem("expires_in", data.expires_in);
-              localStorage.setItem("id_token", data.id_token);
-              localStorage.setItem("token_type", data.token_type);
-              localStorage.setItem("issue_time", newIssueTime.toISOString());
-            } catch (error) {
-              console.error(`Error refreshing token: ${error}`);
-              // Clear token data on failure.
-              localStorage.removeItem("access_token");
-              localStorage.removeItem("issue_time");
-              localStorage.removeItem("expires_in");
-              localStorage.removeItem("id_token");
-
-              // Optionally, store a post-login path and redirect.
+    if (shouldRefresh) {
+      console.log("Starting token refresh...");
+      if (tokenRefreshPromise === null) {
+        tokenRefreshPromise = (async () => {
+          let refreshFailed = false;
+          try {
+            const response = await fetchRetry("/refresh", { credentials: "same-origin" });
+            if (!response.ok) {
+              console.log("Token refresh failed! Session may have ended.");
+              refreshFailed = true;
+              throw new Error("Refresh failed!");
+            }
+            const data = await response.json();
+            console.log(`Token refresh succeeded! New token valid for ${data.expires_in} seconds.`);
+            const newIssueTime = new Date();
+            localStorage.setItem("access_token", data.access_token);
+            localStorage.setItem("expires_in", data.expires_in);
+            localStorage.setItem("id_token", data.id_token);
+            localStorage.setItem("token_type", data.token_type);
+            localStorage.setItem("issue_time", newIssueTime.toISOString());
+            accessToken = data.access_token;
+          } catch (error) {
+            console.error(`Error refreshing token: ${error}`);
+            refreshFailed = true;
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("issue_time");
+            localStorage.removeItem("expires_in");
+            localStorage.removeItem("id_token");
+            throw error; // Re-throw to be caught by the caller
+          } finally {
+            tokenRefreshPromise = null; // Reset the shared promise
+            if (refreshFailed) {
+              // Defer redirect until after promise resolution
               const expiresAt = new Date();
               expiresAt.setMinutes(expiresAt.getMinutes() + 10);
               console.log(`Storing post login path as ${window.location.pathname}, expires at ${expiresAt}`);
               localStorage.setItem("postLoginPath", window.location.pathname);
               localStorage.setItem("postLoginPathExpiresAt", expiresAt.toString());
-              window.location.href = `/`;
-              throw error;
-            } finally {
-              // Reset the shared promise once the refresh is complete.
-              tokenRefreshPromise = null;
+              window.location.href = `/`; // Redirect happens after finally
             }
-          })();
-        }
-        // Wait for the refresh promise to complete.
-        await tokenRefreshPromise;
-        // After refresh, retrieve the updated token.
-        accessToken = localStorage.getItem("access_token");
+          }
+          return accessToken;
+        })();
+      }
+      try {
+        await tokenRefreshPromise; // Wait for refresh to complete
+        accessToken = localStorage.getItem("access_token"); // Update token after refresh
+      } catch (error) {
+        // If refresh fails, the finally block in tokenRefreshPromise handles the redirect
+        throw error; // Propagate error to caller (fetchCredentials)
       }
     }
   }
@@ -96,21 +92,21 @@ async function getOrRefreshAccessToken() {
 }
 
 const handler = {
-  get: function(target, prop, receiver) {
+  get: function (target, prop, receiver) {
     const originalMethod = target[prop];
     if (typeof originalMethod === "function") {
       return async function (...args) {
         const accessToken = await getOrRefreshAccessToken();
-        let TokenAuth = target.apiClient.authentications['TokenAuth'];
+        let TokenAuth = target.apiClient.authentications["TokenAuth"];
         TokenAuth.apiKey = accessToken;
         TokenAuth.apiKeyPrefix = "Bearer";
         return originalMethod.apply(target, args);
-      }
+      };
     } else {
       return Reflect.get(target, prop, receiver);
     }
-  }
-}
+  },
+};
 
 function getApiProxy(api) {
   return new Proxy(api, handler);
