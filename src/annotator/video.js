@@ -116,7 +116,7 @@ async function pingServerWithTimeout(url, timeout = 50) {
 // until the frame override is removed.
 // An imageBitmap can be made from a offscreen canvas via canvas.transferToImageBitmap()
 
-var Direction = { BACKWARDS:-1, STOPPED: 0, FORWARD: 1};
+export var Direction = { BACKWARDS:-1, STOPPED: 0, FORWARD: 1};
 var State = {PLAYING: 0, IDLE: 1, LOADING: -1};
 
 export var RATE_CUTOFF_FOR_ON_DEMAND = 4.0;
@@ -2493,7 +2493,12 @@ export class VideoCanvas extends AnnotationCanvas {
   // Returns true if on-demand buffer check + delay is required based on current settings.
   bufferDelayRequired()
   {
-    return (this._playbackRate <= RATE_CUTOFF_FOR_ON_DEMAND && this._play_idx != this._scrub_idx && this._videoElement[0]._compat != true);
+    const isOnDemandPlayback = this._playbackRate <= RATE_CUTOFF_FOR_ON_DEMAND;
+    const isDifferentBuffer = this._play_idx != this._scrub_idx;
+    const isNotCompatMode = this._videoElement[0]._compat != true;
+    const isPlayingBackward = this._direction == Direction.BACKWARDS;
+
+    return isOnDemandPlayback && isDifferentBuffer && isNotCompatMode && !isPlayingBackward;
   }
 
   get length()
