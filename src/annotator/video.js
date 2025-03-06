@@ -2497,8 +2497,14 @@ export class VideoCanvas extends AnnotationCanvas {
     const isDifferentBuffer = this._play_idx != this._scrub_idx;
     const isNotCompatMode = this._videoElement[0]._compat != true;
     const isPlayingBackward = this._direction == Direction.BACKWARDS;
-
-    return isOnDemandPlayback && isDifferentBuffer && isNotCompatMode && !isPlayingBackward;
+    if (isPlayingBackward)
+    {
+      return false;
+    }
+    else
+    {
+      return isOnDemandPlayback && isDifferentBuffer && isNotCompatMode;
+    }
   }
 
   get length()
