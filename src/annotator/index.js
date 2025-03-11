@@ -1,4 +1,4 @@
-export * from "./mp4box.all.js";
+
 export * from "./image.js";
 export * from "./live-video.js";
 export * from "./video-simple.js";
