@@ -3929,10 +3929,8 @@ export class AnnotationCanvas extends HTMLElement
       this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
                                        {composed: true,
                                         detail: {enabled: true}}));
-      this._undo.delete_metadata("Localization", localization, objDescription).then(() => 
-      {
-        this.updateType(objDescription,() => 
-        {
+      this._undo.delete_metadata("Localization", localization, objDescription).then(() => {
+        this.updateType(objDescription,() => {
                 this.dispatchEvent(new CustomEvent("temporarilyMaskEdits",
                                   {composed: true,
                                    detail: {enabled: false}}));

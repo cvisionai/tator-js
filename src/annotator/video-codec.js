@@ -841,8 +841,7 @@ export class TatorVideoDecoder {
    */
   resetOnDemandBuffer()
   {
-    let p_func = (resolve, reject) => 
-    {
+    let p_func = (resolve, reject) => {
       this.reset().then(() => {
         resolve();
       });
