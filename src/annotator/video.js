@@ -2848,7 +2848,8 @@ export class VideoCanvas extends AnnotationCanvas {
             }
 
             //console.info(`TIME CHECK: ${timeToEnd} to ${appendThreshold}`);
-            if (timeToEnd < appendThreshold)
+            // We are only interested if we can fetch more than one frame
+            if ((appendThreshold - timeToEnd) > (1/this._fps))
             {
               // Need to download more video playback data
               // Since we are requesting more data, trim the buffer
