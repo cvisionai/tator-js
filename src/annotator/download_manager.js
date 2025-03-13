@@ -247,6 +247,8 @@ export class DownloadManager
       this._parent._onDemandFinished = true;
       this._parent._onDemandPendingDownloads = 0;
       this._parent._onDemandPlaybackReady = true; //if we reached the end, we are done.
+      // Cancel the timeout to start the next onDemand download check as we are completed
+      clearTimeout(this._parent._onDemandDownloadTimeout);
       this._parent.sendPlaybackReady();
     }
     else if (type == "onDemand")
