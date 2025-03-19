@@ -2218,9 +2218,18 @@ export class VideoCanvas extends AnnotationCanvas {
 
   pendingFramesMethod()
   {
+    let immediate = false;
     if (this._pendingTimeout != null)
     {
-      return;
+      if (performance.now() - this._pendingTimeoutSet > (1000/this._videoFps))
+      {
+        console.warn("We tried and failed to revive the pending timeout, trying again.");
+        immediate = true;
+      }
+      else
+      {
+        return;
+      }
     }
     this._push_profiler = new PeriodicTaskProfiler("Push");
     let push_pending = () => {
@@ -2236,6 +2245,7 @@ export class VideoCanvas extends AnnotationCanvas {
       if (this._pendingFrames.length > 0)
       {
         this._pendingTimeout = setTimeout(push_pending, (1000/this._videoFps)/2);
+        this._pendingTimeoutSet = performance.now();
       }
       else
       {
@@ -2244,7 +2254,11 @@ export class VideoCanvas extends AnnotationCanvas {
 
     }
 
-    if (this._pendingFrames.length > 0)
+    if (immediate == true)
+    {
+      push_pending();
+    }
+    else if (this._pendingFrames.length > 0)
     {
       this._pendingTimeout = setTimeout(push_pending, (1000/this._videoFps)/2);
     }
