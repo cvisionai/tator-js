@@ -2237,6 +2237,10 @@ export class VideoCanvas extends AnnotationCanvas {
       {
         this._pendingTimeout = setTimeout(push_pending, (1000/this._videoFps)/2);
       }
+      else
+      {
+        this._pendingTimeout = null;
+      }
 
     }
 
@@ -2283,6 +2287,7 @@ export class VideoCanvas extends AnnotationCanvas {
       {
         this.pushFrame(frame.frameNumber, frame, frame.displayWidth, frame.displayHeight);
         frame.returnFrame();
+        this._pendingTimeout = null;
       }
       else
       {
