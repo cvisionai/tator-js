@@ -2218,9 +2218,18 @@ export class VideoCanvas extends AnnotationCanvas {
 
   pendingFramesMethod()
   {
+    let immediate = false;
     if (this._pendingTimeout != null)
     {
-      return;
+      if (performance.now() - this._pendingTimeoutSet > (1000/this._videoFps))
+      {
+        console.warn("We tried and failed to revive the pending timeout, trying again.");
+        immediate = true;
+      }
+      else
+      {
+        return;
+      }
     }
     this._push_profiler = new PeriodicTaskProfiler("Push");
     let push_pending = () => {
@@ -2236,11 +2245,20 @@ export class VideoCanvas extends AnnotationCanvas {
       if (this._pendingFrames.length > 0)
       {
         this._pendingTimeout = setTimeout(push_pending, (1000/this._videoFps)/2);
+        this._pendingTimeoutSet = performance.now();
+      }
+      else
+      {
+        this._pendingTimeout = null;
       }
 
     }
 
-    if (this._pendingFrames.length > 0)
+    if (immediate == true)
+    {
+      push_pending();
+    }
+    else if (this._pendingFrames.length > 0)
     {
       this._pendingTimeout = setTimeout(push_pending, (1000/this._videoFps)/2);
     }
@@ -2283,6 +2301,7 @@ export class VideoCanvas extends AnnotationCanvas {
       {
         this.pushFrame(frame.frameNumber, frame, frame.displayWidth, frame.displayHeight);
         frame.returnFrame();
+        this._pendingTimeout = null;
       }
       else
       {
@@ -2497,8 +2516,14 @@ export class VideoCanvas extends AnnotationCanvas {
     const isDifferentBuffer = this._play_idx != this._scrub_idx;
     const isNotCompatMode = this._videoElement[0]._compat != true;
     const isPlayingBackward = this._direction == Direction.BACKWARDS;
-
-    return isOnDemandPlayback && isDifferentBuffer && isNotCompatMode && !isPlayingBackward;
+    if (isPlayingBackward)
+    {
+      return false;
+    }
+    else
+    {
+      return isOnDemandPlayback && isDifferentBuffer && isNotCompatMode;
+    }
   }
 
   get length()
@@ -2842,7 +2867,8 @@ export class VideoCanvas extends AnnotationCanvas {
             }
 
             //console.info(`TIME CHECK: ${timeToEnd} to ${appendThreshold}`);
-            if (timeToEnd < appendThreshold)
+            // We are only interested if we can fetch more than one frame
+            if ((appendThreshold - timeToEnd) > (1/this._fps))
             {
               // Need to download more video playback data
               // Since we are requesting more data, trim the buffer
