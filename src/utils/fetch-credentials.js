@@ -68,6 +68,34 @@ async function fetchCredentials(url, opts = {}, retry = false, credsOnly = false
   const response = await doFetch(url, newOpts);
 
   if (response.status === 401 && KEYCLOAK_ENABLED) {
+    // Clone the response so we can read the body without consuming the original
+    const clonedResponse = response.clone();
+    let responseData = null;
+    let isUserDisabled = false;
+
+    try {
+        // Attempt to read the body as JSON
+        responseData = await response.json(); // Read from the original response stream
+
+        // Check if the response data contains a specific error code
+        if (responseData && responseData.error && responseData.error == "User disabled") {
+            console.log(`Received user diabled 401 error. Skipping token refresh.`);
+            isUserDisabled = true;
+        } else {
+            console.log("Received standard 401 (or unknown body format). Attempting token refresh...");
+        }
+    } catch (error) {
+        // Handle cases where the body isn't valid JSON or is empty
+        console.warn("Could not parse 401 response body as JSON, treating as standard 401.", error);
+        // Proceed with refresh attempt by default if body parsing fails
+    }
+
+    // If it's a special 401 we identified, return the cloned response immediately
+    if (isUserDisabled) {
+        // Return the CLONED response, as the original's body stream may have been consumed
+        return clonedResponse;
+    }
+    
     console.log("Received 401 - Attempting token refresh...");
     try {
       const newAccessToken = await getOrRefreshAccessToken(true); // Force refresh
