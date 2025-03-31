@@ -90,10 +90,9 @@ async function fetchCredentials(url, opts = {}, retry = false, credsOnly = false
         // Proceed with refresh attempt by default if body parsing fails
     }
 
-    // If it's a special 401 we identified, return the cloned response immediately
+    // If it's a special 401 we identified, redirect the user to the login page
     if (isUserDisabled) {
-        // Return the CLONED response, as the original's body stream may have been consumed
-        return clonedResponse;
+        window.location.href = "/";
     }
     
     console.log("Received 401 - Attempting token refresh...");
