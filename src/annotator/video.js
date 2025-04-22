@@ -892,7 +892,7 @@ export class VideoCanvas extends AnnotationCanvas {
                         this.startDownload(streaming_files, offsite_config, false);
                         this._draw.clear();
                         this._draw.resizeViewport(dims[0], dims[1]);
-                        this._fps=Math.round(1000*this._children[0].fps)/1000;
+                        this._fps=this._children[0].fps;
                         this._numFrames=new_length;
                         this._numSeconds=new_length / this._fps;
                         this._dims=dims;
@@ -948,13 +948,13 @@ export class VideoCanvas extends AnnotationCanvas {
 
     this._videoElement = [];
     let streaming_files = this._videoObject.media_files.streaming;
-    this._fps=Math.round(1000*fps)/1000;
+    this._fps=fps;
 
     if (this._localMode == 1)
     {
       dims = this.identify_qualities(videoObject, quality, scrubQuality, seekQuality, offsite_config);
       this._draw.resizeViewport(dims[0], dims[1]);
-      this._fps=Math.round(1000*fps)/1000;
+      this._fps=fps;
       this._numFrames=numFrames-1;
       this._numSeconds=fps*numFrames;
       this._dims=dims;
