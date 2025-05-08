@@ -763,6 +763,7 @@ export class TatorVideoDecoder {
     this._buffer.pause();
     if (time)
     {
+      this._buffer.oncanplay = null;
       this._buffer.currentTime = time;
     }
   }
