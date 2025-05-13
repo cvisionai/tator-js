@@ -5057,7 +5057,6 @@ export class AnnotationCanvas extends HTMLElement
   {
     this._clipboard.clear();
     this._emphasis = null;
-    this._mouseMode = MouseMode.QUERY;
   }
 
   onPause()
@@ -5065,7 +5064,10 @@ export class AnnotationCanvas extends HTMLElement
     if (this.activeLocalization) {
       if (this.currentFrame() !== this.activeLocalization.frame) {
         this.activeLocalization = null;
-        this._mouseMode = MouseMode.QUERY;
+        if (this._mouseMode < MouseMode.MOVE)
+        {
+          this._mouseMode = MouseMode.QUERY;
+        }
       } else {
         //this.emphasizeLocalization(this.activeLocalization);
         //this.selectLocalization(this.activeLocalization);
