@@ -757,6 +757,10 @@ export class VideoCanvas extends AnnotationCanvas {
     if (searchParams.has("frame"))
     {
       this._dispFrame = Number(searchParams.get("frame"));
+      if (isNaN(this._dispFrame) || this._dispFrame == null)
+      {
+        this._dispFrame = 0;
+      }
     }
     if (searchParams.has("forceCompat"))
     {
@@ -1487,6 +1491,10 @@ export class VideoCanvas extends AnnotationCanvas {
    */
   seekFrame(frame, callback, forceSeekBuffer, bufferType, forceSeekDownload)
   {
+    if (isNaN(frame) || frame == null)
+    {
+      frame = 0;
+    }
     if (this._videoElement == undefined)
     {
       console.warn("No video element defined yet.");
@@ -1805,6 +1813,10 @@ export class VideoCanvas extends AnnotationCanvas {
    */
   gotoFrame(frameIdx, forceSeekBuffer)
   {
+    if (isNaN(frameIdx) || frameIdx == null)
+    {
+      frameIdx = 0;
+    }
     if (this._direction != Direction.STOPPED)
     {
       return new Promise((resolve,reject)=>{reject(new Error(`Video is not stopped`));});
