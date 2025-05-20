@@ -2158,9 +2158,9 @@ export class VideoCanvas extends AnnotationCanvas {
       {
         this._stallStart = performance.now();
       }
-      // If we have been stalling for 2 seconds, its over.
+      // If we have been stalling for 5 seconds, its over.
       const stallTime = performance.now() - this._stallStart;
-      if (stallTime > 2000)
+      if (stallTime > 5000)
       {
         console.warn(`${performance.now()}: Player Stalled, duration= ${stallTime}`);
         this.dispatchEvent(new CustomEvent("playbackStalled", {composed: true}));
