@@ -1765,14 +1765,12 @@ export class VideoCanvas extends AnnotationCanvas {
       {
         effectiveRate = 1;
       }
-      if (this._videoElement[this._active_idx].playBuffer().keyframeOnly != oldKFO)
-      {
-        this._videoElement[this._active_idx].playBuffer().hotKFOChange(this.frameToTime(this._dispFrame, this._active_idx), this._videoElement[this._active_idx].playBuffer().keyframeOnly);
-        // Marty:
-        // Clear the frame buffer because it will have frames in the future from our current PoV
-        this._draw.clear();
-        this._pendingFrames = [];
-      }
+      this._videoElement[this._active_idx].playBuffer().hotKFOChange(this.frameToTime(this._dispFrame, this._active_idx), this._videoElement[this._active_idx].playBuffer().keyframeOnly);
+      // Marty:
+      // Clear the frame buffer because it will have frames in the future from our current PoV
+      // This will cause a stalling error, but it should recover before our allowance is up.
+      this._draw.clear();
+      this._pendingFrames = [];
       this._motionComp.computePlaybackSchedule(this._fps,effectiveRate);
       if (this._frameCallbackActive == false)
       {
@@ -2160,16 +2158,18 @@ export class VideoCanvas extends AnnotationCanvas {
       {
         this._stallStart = performance.now();
       }
-      // If we have been stalling for a second, its over.
+      // If we have been stalling for 2 seconds, its over.
       const stallTime = performance.now() - this._stallStart;
-      if (stallTime > 1000)
+      if (stallTime > 2000)
       {
         console.warn(`${performance.now()}: Player Stalled, duration= ${stallTime}`);
         this.dispatchEvent(new CustomEvent("playbackStalled", {composed: true}));
       }
       else
       {
-        this._playerTimeout = window.requestAnimationFrame(player);
+        this._playerTimeout = setTimeout(() => {
+          this._playerTimeout = window.requestAnimationFrame(player);
+        }, 250);
         return;
       }
       // Done playing, clear playback.
