@@ -1768,6 +1768,10 @@ export class VideoCanvas extends AnnotationCanvas {
       if (this._videoElement[this._active_idx].playBuffer().keyframeOnly != oldKFO)
       {
         this._videoElement[this._active_idx].playBuffer().hotKFOChange(this.frameToTime(this._dispFrame, this._active_idx), this._videoElement[this._active_idx].playBuffer().keyframeOnly);
+        // Marty:
+        // Clear the frame buffer because it will have frames in the future from our current PoV
+        this._draw.clear();
+        this._pendingFrames = [];
       }
       this._motionComp.computePlaybackSchedule(this._fps,effectiveRate);
       if (this._frameCallbackActive == false)
@@ -2136,6 +2140,8 @@ export class VideoCanvas extends AnnotationCanvas {
 
     if (this._renderer && (this._draw.canPlay() > 0))
     {
+      this._stallStart = 0;
+      this._stallCount = 0;
       this._renderer.notifyReady(this._videoObject.id, player);
     }
     else if (this._draw.canPlay() > 0)
@@ -2148,15 +2154,17 @@ export class VideoCanvas extends AnnotationCanvas {
     }
     else
     {
-      console.warn(`Player Stalling. BD=${this._draw.bufferDepth}`);
+      console.warn(`${performance.now()}: Player Stalling.`);
       this._stallCount += 1;
       if (this._stallStart == 0)
       {
         this._stallStart = performance.now();
       }
       // If we have been stalling for a second, its over.
-      if (performance.now() - this._stallStart > 1000)
+      const stallTime = performance.now() - this._stallStart;
+      if (stallTime > 1000)
       {
+        console.warn(`${performance.now()}: Player Stalled, duration= ${stallTime}`);
         this.dispatchEvent(new CustomEvent("playbackStalled", {composed: true}));
       }
       else
@@ -2263,9 +2271,12 @@ export class VideoCanvas extends AnnotationCanvas {
       {
         let start = performance.now();
         let frame = this._pendingFrames.shift();
-        this.pushFrame(frame.frameNumber, frame, frame.displayWidth, frame.displayHeight);
-        frame.returnFrame();
-        this._push_profiler.push(performance.now()-start);
+        if (frame)
+        {
+          this.pushFrame(frame.frameNumber, frame, frame.displayWidth, frame.displayHeight);
+          frame.returnFrame();
+          this._push_profiler.push(performance.now()-start);
+        }
       }
       if (this._pendingFrames.length > 0)
       {
@@ -2320,7 +2331,6 @@ export class VideoCanvas extends AnnotationCanvas {
       frame.frameNumber = this.timeToFrame((frame.timestamp/timescale), null, video.named_idx);
       this._loadFrame = frame.frameNumber;
       this._fpsLoadDiag++;
-
       if (this._draw.canLoad() > 0 && this._pendingFrames.length == 0)
       {
         this.pushFrame(frame.frameNumber, frame, frame.displayWidth, frame.displayHeight);
