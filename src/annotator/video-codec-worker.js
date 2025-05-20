@@ -1226,5 +1226,12 @@ onmessage = function(e)
   {
     ref.frameIncrement = msg.value;
   }
+  else if (msg.type == "hotKFOChange")
+  {
+    ref.keyframeOnly = msg.kfoValue;
+      ref.pause();
+    ref._setCurrentTime(msg.currentTime, true, msg.videoTime, false);
+    ref.play();
+  }
 }
 

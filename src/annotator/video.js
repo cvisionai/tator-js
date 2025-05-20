@@ -1752,9 +1752,22 @@ export class VideoCanvas extends AnnotationCanvas {
       // If we are playing trim the frame buffer to a quarter second to make the rate change
       // feel responsive.
       let effectiveRate = this._playbackRate;
-      if (this._videoElement[this._play_idx].playBuffer().keyframeOnly == true)
+      const oldKFO = this._videoElement[this._active_idx].playBuffer().keyframeOnly;
+      if (this._fps * this._playbackRate >= 16*15)
+      {
+        this._videoElement[this._active_idx].playBuffer().keyframeOnly = true;
+      }
+      else
+      {
+        this._videoElement[this._active_idx].playBuffer().keyframeOnly = false;
+      }
+      if (this._videoElement[this._active_idx].playBuffer().keyframeOnly == true)
       {
         effectiveRate = 1;
+      }
+      if (this._videoElement[this._active_idx].playBuffer().keyframeOnly != oldKFO)
+      {
+        this._videoElement[this._active_idx].playBuffer().hotKFOChange(this.frameToTime(this._dispFrame, this._active_idx), this._videoElement[this._active_idx].playBuffer().keyframeOnly);
       }
       this._motionComp.computePlaybackSchedule(this._fps,effectiveRate);
       if (this._frameCallbackActive == false)
