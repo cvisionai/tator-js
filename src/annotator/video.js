@@ -2140,15 +2140,30 @@ export class VideoCanvas extends AnnotationCanvas {
     }
     else if (this._draw.canPlay() > 0)
     {
+      this._stallStart = 0;
+      this._stallCount = 0;
       // Ready to update the video.
       // Request browser to call player function to update an animation before the next repaint
       this._playerTimeout = window.requestAnimationFrame(player);
     }
     else
     {
-      console.warn(`Player Stalled. BD=${this._draw.bufferDepth}`);
-      this.dispatchEvent(new CustomEvent("playbackStalled", {composed: true}));
+      console.warn(`Player Stalling. BD=${this._draw.bufferDepth}`);
       this._stallCount += 1;
+      if (this._stallStart == 0)
+      {
+        this._stallStart = performance.now();
+      }
+      // If we have been stalling for a second, its over.
+      if (performance.now() - this._stallStart > 1000)
+      {
+        this.dispatchEvent(new CustomEvent("playbackStalled", {composed: true}));
+      }
+      else
+      {
+        this._playerTimeout = window.requestAnimationFrame(player);
+        return;
+      }
       // Done playing, clear playback.
       if (this._audioEligible && this._audioPlayer.paused)
       {
@@ -3135,6 +3150,7 @@ export class VideoCanvas extends AnnotationCanvas {
     this._playEffect = true;
     document.body.style.cursor = "progress";
     this._stallCount = 0;
+    this._stallStart = 0;
     if (this._dispFrame >= (this._numFrames))
     {
       return false;
