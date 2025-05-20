@@ -1874,6 +1874,7 @@ export class VideoCanvas extends AnnotationCanvas {
 
   _playGenericScrub(direction)
   {
+    this._active_idx = this._scrub_idx;
     this.dispatchEvent(new CustomEvent(
       "playing",
       {
@@ -1882,7 +1883,6 @@ export class VideoCanvas extends AnnotationCanvas {
       }));
     console.log("Setting playback direction " + direction);
     this._direction=direction;
-    this._active_idx = this._scrub_idx;
 
     // Reset the GPU buffer on a new play action
     this._draw.clear();
@@ -2001,6 +2001,7 @@ export class VideoCanvas extends AnnotationCanvas {
    */
   _playGenericOnDemand(direction)
   {
+    this._active_idx = this._play_idx;
     this.dispatchEvent(new CustomEvent(
       "playing",
       {
@@ -2010,7 +2011,6 @@ export class VideoCanvas extends AnnotationCanvas {
     var that = this;
     console.log(`_playGenericOnDemand (ID:${this._videoObject.id}) Setting direction ${direction}`);
     this._direction=direction;
-    this._active_idx = this._play_idx;
 
     /*
     // If we are going backwards re-init the buffers
