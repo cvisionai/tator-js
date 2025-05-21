@@ -757,6 +757,10 @@ export class VideoCanvas extends AnnotationCanvas {
     if (searchParams.has("frame"))
     {
       this._dispFrame = Number(searchParams.get("frame"));
+      if (isNaN(this._dispFrame) || this._dispFrame == null)
+      {
+        this._dispFrame = 0;
+      }
     }
     if (searchParams.has("forceCompat"))
     {
@@ -1487,6 +1491,10 @@ export class VideoCanvas extends AnnotationCanvas {
    */
   seekFrame(frame, callback, forceSeekBuffer, bufferType, forceSeekDownload)
   {
+    if (isNaN(frame) || frame == null)
+    {
+      frame = 0;
+    }
     if (this._videoElement == undefined)
     {
       console.warn("No video element defined yet.");
@@ -1752,10 +1760,25 @@ export class VideoCanvas extends AnnotationCanvas {
       // If we are playing trim the frame buffer to a quarter second to make the rate change
       // feel responsive.
       let effectiveRate = this._playbackRate;
-      if (this._videoElement[this._play_idx].playBuffer().keyframeOnly == true)
+      const oldKFO = this._videoElement[this._active_idx].playBuffer().keyframeOnly;
+      if (this._fps * this._playbackRate >= 16*15)
+      {
+        this._videoElement[this._active_idx].playBuffer().keyframeOnly = true;
+      }
+      else
+      {
+        this._videoElement[this._active_idx].playBuffer().keyframeOnly = false;
+      }
+      if (this._videoElement[this._active_idx].playBuffer().keyframeOnly == true)
       {
         effectiveRate = 1;
       }
+      this._videoElement[this._active_idx].playBuffer().hotKFOChange(this.frameToTime(this._dispFrame, this._active_idx), this._videoElement[this._active_idx].playBuffer().keyframeOnly);
+      // Marty:
+      // Clear the frame buffer because it will have frames in the future from our current PoV
+      // This will cause a stalling error, but it should recover before our allowance is up.
+      this._draw.clear();
+      this._pendingFrames = [];
       this._motionComp.computePlaybackSchedule(this._fps,effectiveRate);
       if (this._frameCallbackActive == false)
       {
@@ -1790,6 +1813,10 @@ export class VideoCanvas extends AnnotationCanvas {
    */
   gotoFrame(frameIdx, forceSeekBuffer)
   {
+    if (isNaN(frameIdx) || frameIdx == null)
+    {
+      frameIdx = 0;
+    }
     if (this._direction != Direction.STOPPED)
     {
       return new Promise((resolve,reject)=>{reject(new Error(`Video is not stopped`));});
@@ -1874,6 +1901,7 @@ export class VideoCanvas extends AnnotationCanvas {
 
   _playGenericScrub(direction)
   {
+    this._active_idx = this._scrub_idx;
     this.dispatchEvent(new CustomEvent(
       "playing",
       {
@@ -1882,7 +1910,6 @@ export class VideoCanvas extends AnnotationCanvas {
       }));
     console.log("Setting playback direction " + direction);
     this._direction=direction;
-    this._active_idx = this._scrub_idx;
 
     // Reset the GPU buffer on a new play action
     this._draw.clear();
@@ -2001,6 +2028,7 @@ export class VideoCanvas extends AnnotationCanvas {
    */
   _playGenericOnDemand(direction)
   {
+    this._active_idx = this._play_idx;
     this.dispatchEvent(new CustomEvent(
       "playing",
       {
@@ -2010,7 +2038,6 @@ export class VideoCanvas extends AnnotationCanvas {
     var that = this;
     console.log(`_playGenericOnDemand (ID:${this._videoObject.id}) Setting direction ${direction}`);
     this._direction=direction;
-    this._active_idx = this._play_idx;
 
     /*
     // If we are going backwards re-init the buffers
@@ -2123,19 +2150,40 @@ export class VideoCanvas extends AnnotationCanvas {
 
     if (this._renderer && (this._draw.canPlay() > 0))
     {
+      this._stallStart = 0;
+      this._stallCount = 0;
       this._renderer.notifyReady(this._videoObject.id, player);
     }
     else if (this._draw.canPlay() > 0)
     {
+      this._stallStart = 0;
+      this._stallCount = 0;
       // Ready to update the video.
       // Request browser to call player function to update an animation before the next repaint
       this._playerTimeout = window.requestAnimationFrame(player);
     }
     else
     {
-      console.warn(`Player Stalled. BD=${this._draw.bufferDepth}`);
-      this.dispatchEvent(new CustomEvent("playbackStalled", {composed: true}));
+      console.warn(`${performance.now()}: Player Stalling.`);
       this._stallCount += 1;
+      if (this._stallStart == 0)
+      {
+        this._stallStart = performance.now();
+      }
+      // If we have been stalling for 5 seconds, its over.
+      const stallTime = performance.now() - this._stallStart;
+      if (stallTime > 5000)
+      {
+        console.warn(`${performance.now()}: Player Stalled, duration= ${stallTime}`);
+        this.dispatchEvent(new CustomEvent("playbackStalled", {composed: true}));
+      }
+      else
+      {
+        this._playerTimeout = setTimeout(() => {
+          this._playerTimeout = window.requestAnimationFrame(player);
+        }, 250);
+        return;
+      }
       // Done playing, clear playback.
       if (this._audioEligible && this._audioPlayer.paused)
       {
@@ -2235,9 +2283,12 @@ export class VideoCanvas extends AnnotationCanvas {
       {
         let start = performance.now();
         let frame = this._pendingFrames.shift();
-        this.pushFrame(frame.frameNumber, frame, frame.displayWidth, frame.displayHeight);
-        frame.returnFrame();
-        this._push_profiler.push(performance.now()-start);
+        if (frame)
+        {
+          this.pushFrame(frame.frameNumber, frame, frame.displayWidth, frame.displayHeight);
+          frame.returnFrame();
+          this._push_profiler.push(performance.now()-start);
+        }
       }
       if (this._pendingFrames.length > 0)
       {
@@ -2292,7 +2343,6 @@ export class VideoCanvas extends AnnotationCanvas {
       frame.frameNumber = this.timeToFrame((frame.timestamp/timescale), null, video.named_idx);
       this._loadFrame = frame.frameNumber;
       this._fpsLoadDiag++;
-
       if (this._draw.canLoad() > 0 && this._pendingFrames.length == 0)
       {
         this.pushFrame(frame.frameNumber, frame, frame.displayWidth, frame.displayHeight);
@@ -3122,6 +3172,7 @@ export class VideoCanvas extends AnnotationCanvas {
     this._playEffect = true;
     document.body.style.cursor = "progress";
     this._stallCount = 0;
+    this._stallStart = 0;
     if (this._dispFrame >= (this._numFrames))
     {
       return false;

@@ -511,6 +511,18 @@ class TatorVideoManager {
     }
   }
 
+  hotKFOChange(video_time, kfo_value)
+  {
+    this._current_cursor = video_time+this._bias;
+
+    this._codec_worker.postMessage(
+      {"type": "hotKFOChange",
+       "kfoValue": kfo_value,
+       "currentTime": this._current_cursor,
+       "videoTime": video_time,
+    });
+  }
+
   /// Return a list of TimeRange objects representing the downloaded/playable regions of the
   /// video data.
   get buffered()
