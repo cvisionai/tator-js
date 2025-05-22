@@ -2021,9 +2021,20 @@ export class VideoCanvas extends AnnotationCanvas {
       }
 
       // If we are in multi and going backwards cap rewind at 10hz
+      let urlParams = new URLSearchParams(window.location.search);
+      let maxReverseFps = urlParams.get("maxReverseFps");
+      if (maxReverseFps == null)
+      {
+        maxReverseFps = 10;
+      }
+      this._maxReverseFps = maxReverseFps;
       if (this._direction == Direction.BACKWARDS && this._renderer)
       {
-        this._motionComp.computePlaybackSchedule(Math.min(10,this._fps),effectiveRate);
+        this._motionComp.computePlaybackSchedule(Math.min(maxReverseFps,this._fps),effectiveRate, true);
+      }
+      else if (this._direction == Direction.BACKWARDS)
+      {
+        this._motionComp.computePlaybackSchedule(Math.min(maxReverseFps,this._fps),effectiveRate, true);
       }
       else
       {
@@ -2507,7 +2518,12 @@ export class VideoCanvas extends AnnotationCanvas {
       this._loadFrame = this._dispFrame;
     }
 
-    let frameIncrement = this._motionComp.frameIncrement(this._fps, this._playbackRate);
+    let fps = this._fps;
+    if (this._direction == Direction.BACKWARDS)
+    {
+      fps = Math.min(this._maxReverseFps,this._fps)
+    }
+    let frameIncrement = this._motionComp.frameIncrement(fps, this._playbackRate, Direction.BACKWARDS == this._direction);
     var nextFrame = this._loadFrame + (this._direction * frameIncrement);
 
     // Callback function that pushes the given frame/image to the drawGL buffer
