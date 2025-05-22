@@ -1281,15 +1281,24 @@ export class VideoCanvas extends AnnotationCanvas {
     document.body.style.cursor = null;
     let gl_start = performance.now();
     this._fpsDiag++;
-    this._dispFrame=this._draw.dispImage(hold);
+    const newFrame=this._draw.dispImage(hold);
+    if (newFrame == null)
+    {
+      console.warn("No new frame to display");
+    }
+    else
+    {
+      this._dispFrame=newFrame;
 
-    this.dispatchEvent(new CustomEvent("frameChange", {
-      detail: {frame: this._dispFrame},
-      composed: true
-    }));
+      this.dispatchEvent(new CustomEvent("frameChange", {
+        detail: {frame: this._dispFrame},
+        composed: true
+      }));
+    }
 
     let ended = false;
 
+    console.info(`DIRECTION= ${this._direction} DISPFRAME=${this._dispFrame} FRAMEINC=${this._motionComp._frameIncrement} END=${this._numFrames - 1}`);
     if (this._direction == Direction.FORWARD &&
         (this._dispFrame + this._motionComp._frameIncrement) >= (this._numFrames - 1))
     {
