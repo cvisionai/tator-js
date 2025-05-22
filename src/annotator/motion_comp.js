@@ -6,6 +6,11 @@ export class MotionComp {
     this._interval = null;
     this._monitorFps = null;
     this._times = [];
+    let urlParams = new URLSearchParams(window.location.search);
+    this._maxReverseFps = urlParams.get("maxReverseFps");
+    if (this._maxReverseFps == null) {
+      this._maxReverseFps = 10;
+    }
 
     // This takes ~1/3 sec
     this._TRIALS = 20;
@@ -117,13 +122,13 @@ export class MotionComp {
   /// Animations  *       *       *       *       * ....
   /// 48 fps :    |   0   |   1   |   1   |   2   | .... (effective 45 fps)
   ///
-  computePlaybackSchedule(videoFps, factor) {
+  computePlaybackSchedule(videoFps, factor, isBackwards) {
     // Cache these in case we need to recalculate later
     this._videoFps = Math.round(1000 * videoFps) / 1000;
     this._factor = factor;
 
     // Compute a 3-slot schedule for playback
-    let animationCyclesPerFrame = this.animationCycles(videoFps, factor);
+    let animationCyclesPerFrame = this.animationCycles(videoFps, factor, isBackwards);
     let regularSize = Math.round(animationCyclesPerFrame);
     let fractional = animationCyclesPerFrame - regularSize;
     let largeSize = regularSize + Math.ceil(fractional * 3);
@@ -162,7 +167,7 @@ export class MotionComp {
       this._updatesAt.push(update);
       update += this._schedule[idx];
     }
-    this._frameIncrement = this.frameIncrement(this._videoFps, factor);
+    this._frameIncrement = this.frameIncrement(this._videoFps, factor, true);
     this._targetFPS = (this._schedule.length * 1000) / (this._lengthOfSchedule * this._interval);
     let msg = "Playback schedule = " + this._schedule + "\n";
     msg += "Updates @ " + this._updatesAt + "\n";
@@ -184,15 +189,22 @@ export class MotionComp {
     return this._updatesAt.includes(relIdx);
   }
 
-  animationCycles(fps, factor) {
+  animationCycles(fps, factor, isBackwards) {
     let target_fps = fps * factor;
     let max_fps = Math.max(15, this._videoFps);
+    if (isBackwards == true)
+    {
+      max_fps = this._maxReverseFps;
+    }
     target_fps = Math.min(max_fps, target_fps);
     return (this._monitorFps / target_fps);
   }
-  frameIncrement(fps, factor) {
+  frameIncrement(fps, factor, isBackwards) {
     let target_fps = fps * factor;
     let max_fps = Math.min(this._monitorFps, Math.max(15, this._videoFps));
+    if (isBackwards == true) {
+      max_fps = this._maxReverseFps;
+    }
     let clicks = Math.ceil(target_fps / max_fps);
 
     return Math.floor(clicks);
