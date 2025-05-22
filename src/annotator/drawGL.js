@@ -658,6 +658,12 @@ export class DrawGL
   pushImage(frameIdx, frameData, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight, dirty)
   {
 
+    if (frameData == null)
+    {
+      console.warn("Frame data is null");
+      return;
+    }
+
     // local namespacing
     var gl = this.gl;
 
