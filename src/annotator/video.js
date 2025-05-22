@@ -1776,10 +1776,23 @@ export class VideoCanvas extends AnnotationCanvas {
   ////////////////////////////////
   rateChange(newRate)
   {
-    this._playbackRate=newRate;
-    this._draw.rateChange(newRate, this._fps);
-    if (this._direction != Direction.STOPPED)
+    if (this._direction == Direction.STOPPED)
     {
+      this._playbackRate=newRate;
+      this._draw.rateChange(newRate, this._fps);
+    }
+    else if (this._direction != Direction.STOPPED)
+    {
+      if (this._rateChangeInProcess == true)
+      {
+        this._nextRate = newRate;
+        console.info(`${performance.now()}: ${newRate} rate scheduled.`);
+        return;
+      }
+      console.info(`${performance.now()}: ${this._playbackRate} rate change in progress`);
+      this._playbackRate=newRate;
+      this._draw.rateChange(newRate, this._fps);
+      this._rateChangeInProcess = true;
       this._calculateAudioEligibility();
       // If we are playing trim the frame buffer to a quarter second to make the rate change
       // feel responsive.
@@ -2196,11 +2209,31 @@ export class VideoCanvas extends AnnotationCanvas {
       this._stallStart = 0;
       this._stallCount = 0;
       this._renderer.notifyReady(this._videoObject.id, player);
+      // If we have stacked up rate change requests wait until a frame comes in
+      // to avoid stalls due to frequent rate changes.
+      if (this._rateChangeInProcess == true)
+      {
+        this._rateChangeInProcess = false;
+        if (this._nextRate && this._nextRate != this._playbackRate)
+        {
+          this.rateChange(this._nextRate);
+        }
+      }
     }
     else if (this._draw.canPlay() > 0)
     {
       this._stallStart = 0;
       this._stallCount = 0;
+      // If we have stacked up rate change requests wait until a frame comes in
+      // to avoid stalls due to frequent rate changes.
+      if (this._rateChangeInProcess == true)
+      {
+        this._rateChangeInProcess = false;
+        if (this._nextRate && this._nextRate != this._playbackRate)
+        {
+          this.rateChange(this._nextRate);
+        }
+      }
       // Ready to update the video.
       // Request browser to call player function to update an animation before the next repaint
       this._playerTimeout = window.requestAnimationFrame(player);
