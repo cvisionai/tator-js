@@ -2411,12 +2411,28 @@ export class VideoCanvas extends AnnotationCanvas {
     clearTimeout(this._pendingTimeout);
     this._pendingTimeout = null;
 
+    // Get URL params and see if we have frameDelay parameter
+    let urlParams = new URLSearchParams(window.location.search);
+    const frameDelay = urlParams.get("frameDelay");
+
+    // define a sleep function
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     // on frame processing logic
     let lastRate = this._playbackRate;
-    video.onFrame = (frame, timescale, timestampOffset) => {
+    let debug_idx = 0;
+    video.onFrame = async (frame, timescale, timestampOffset) => {
       this._playing = true;
       let start = performance.now();
       frame.frameNumber = this.timeToFrame((frame.timestamp/timescale), null, video.named_idx);
+      if (frameDelay > 0)
+      {
+        // Sleep for the specified delay
+        debug_idx++;
+        let this_delay = frameDelay * debug_idx;
+        console.info(`${performance.now()} Inserting frame delay of ${this_delay}ms`);
+        await sleep(this_delay);
+        debug_idx--;
+      }
       this._loadFrame = frame.frameNumber;
       this._fpsLoadDiag++;
       if (this._draw.canLoad() > 0 && this._pendingFrames.length == 0)
