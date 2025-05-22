@@ -1297,16 +1297,16 @@ export class VideoCanvas extends AnnotationCanvas {
     }
 
     let ended = false;
-
-    console.info(`DIRECTION= ${this._direction} DISPFRAME=${this._dispFrame} FRAMEINC=${this._motionComp._frameIncrement} END=${this._numFrames - 1}`);
+    let kfo = false;
+    let realFrameIncrement = this.getRealFrameIncrement();
     if (this._direction == Direction.FORWARD &&
-        (this._dispFrame + this._motionComp._frameIncrement) >= (this._numFrames - 1))
+        (this._dispFrame + realFrameIncrement) >= (this._numFrames - realFrameIncrement))
     {
       // The watch has ended
       ended = true;
     }
     else if (this._direction == Direction.BACKWARDS &&
-             this._dispFrame - this._motionComp._frameIncrement < 0)
+             this._dispFrame - realFrameIncrement < 0)
     {
       ended = true;
     }
@@ -1319,6 +1319,21 @@ export class VideoCanvas extends AnnotationCanvas {
       }));
     }
     this._glProfiler.push(performance.now()-gl_start);
+  }
+
+  getRealFrameIncrement()
+  {
+    let realFrameIncrement = this._motionComp._frameIncrement;
+    if (this._active_idx != null)
+    {
+      const kfo = this._videoElement[this._active_idx].playBuffer().keyframeOnly;
+      if (this._videoElement[this._active_idx].playBuffer().keyframeOnly)
+      {
+        const multiple = this._playbackRate / 16;
+        realFrameIncrement = 25 * multiple;
+      }
+    }
+    return realFrameIncrement;
   }
 
   /**
@@ -2139,6 +2154,18 @@ export class VideoCanvas extends AnnotationCanvas {
     else
     {
       this._lastTime = domtime;
+    }
+
+    if (this._direction == Direction.STOPPED)
+    {
+      console.info("Player stopped.")
+      // If we are stopped, then we need to stop the player thread
+      if (this._playerTimeout)
+      {
+        clearTimeout(this._playerTimeout);
+        this._playerTimeout = null;
+      }
+      return;
     }
 
 
