@@ -1773,7 +1773,14 @@ export class VideoCanvas extends AnnotationCanvas {
       {
         effectiveRate = 1;
       }
-      this._videoElement[this._active_idx].playBuffer().hotKFOChange(this.frameToTime(this._dispFrame, this._active_idx), this._videoElement[this._active_idx].playBuffer().keyframeOnly);
+      // Use the current frame as the jump frame, but if we are in a multi, then we have
+      // to coordinate our jump frames to stay in sync.
+      let jumpFrame = this._dispFrame;
+      if (window._primeFrame)
+      {
+        jumpFrame = window._primeFrame;
+      }
+      this._videoElement[this._active_idx].playBuffer().hotKFOChange(this.frameToTime(jumpFrame, this._active_idx), this._videoElement[this._active_idx].playBuffer().keyframeOnly);
       // Marty:
       // Clear the frame buffer because it will have frames in the future from our current PoV
       // This will cause a stalling error, but it should recover before our allowance is up.
