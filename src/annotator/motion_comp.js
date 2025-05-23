@@ -167,7 +167,7 @@ export class MotionComp {
       this._updatesAt.push(update);
       update += this._schedule[idx];
     }
-    this._frameIncrement = this.frameIncrement(this._videoFps, factor, true);
+    this._frameIncrement = this.frameIncrement(this._videoFps, factor, isBackwards);
     this._targetFPS = (this._schedule.length * 1000) / (this._lengthOfSchedule * this._interval);
     let msg = "Playback schedule = " + this._schedule + "\n";
     msg += "Updates @ " + this._updatesAt + "\n";
