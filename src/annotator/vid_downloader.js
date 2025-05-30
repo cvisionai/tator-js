@@ -51,6 +51,7 @@ class VideoDownloader
     this._info = {};
     this._persistentRequests = {};
     this._persistentReaders = {};
+    this._persistentOffsets = {};
     this._workerMemoryBuffer = {};
     this._fileInfoRequested = false;
     this._infoObjectsInitialized = 0;
@@ -780,18 +781,19 @@ class VideoDownloader
         persistentRequest = await fetch(this._media_files[buf_idx].path, { headers: this._headers });
         this._persistentRequests[buf_idx] = persistentRequest;
         this._persistentReaders[buf_idx] = persistentRequest.body.getReader();
-        
-        // Start with a resizable ArrayBuffer (experimental feature in modern browsers)
-        this._workerMemoryBuffer[buf_idx] = new ArrayBuffer(0, { maxByteLength: 4 * 1024 * 1024 * 1024 }); // 4GB max
+        this._persistentOffsets[buf_idx] = 0;
+
+        // Resizable ArrayBuffer — experimental
+        this._workerMemoryBuffer[buf_idx] = new ArrayBuffer(0, { maxByteLength: 4 * 1024 * 1024 * 1024 });
       }
 
       let buffer = this._workerMemoryBuffer[buf_idx];
       let view = new Uint8Array(buffer);
-      let maxByte = buffer.byteLength;
+      let offset = this._persistentOffsets[buf_idx];
       const endByte = startByte + currentSize - 1;
 
-      // Read until we have enough data
-      while (endByte >= maxByte) {
+      // Read until enough data is available
+      while (endByte >= offset) {
         const { done, value } = await this._persistentReaders[buf_idx].read();
         if (done) {
           console.debug(`Persistent reader for buffer ${buf_idx} is done reading`);
@@ -799,24 +801,28 @@ class VideoDownloader
         }
 
         const newBytes = new Uint8Array(value);
-        const newSize = maxByte + newBytes.byteLength;
+        const newSize = offset + newBytes.byteLength;
 
-        try
-        {
+        try {
           buffer.resize(newSize);
-        }
-        catch (error)
-        {
+        } catch (error) {
           console.error(`Error resizing buffer for buf_idx ${buf_idx}:`, error);
         }
-        view = new Uint8Array(buffer); // Refresh the view after resize
-        view.set(newBytes, maxByte);
 
-        maxByte = newSize;
+        view = new Uint8Array(buffer); // Refresh view
+        view.set(newBytes, offset);
+        offset += newBytes.byteLength;
+        this._persistentOffsets[buf_idx] = offset;
       }
 
-      // Create a copy of the requested slice
+      // Slice the data we care about
       const subArray = view.slice(startByte, endByte + 1);
+
+      // Optional: trim memory buffer (commented out for performance)
+      // const remaining = view.slice(endByte + 1);
+      // this._workerMemoryBuffer[buf_idx] = new ArrayBuffer(remaining.length, { maxByteLength: 4 * 1024 * 1024 * 1024 });
+      // new Uint8Array(this._workerMemoryBuffer[buf_idx]).set(remaining);
+      // this._persistentOffsets[buf_idx] = 0;
 
       const data = {
         type: "buffer",
@@ -832,6 +838,7 @@ class VideoDownloader
       };
 
       postMessage(data, [subArray.buffer]);
+
 
     }
     else
