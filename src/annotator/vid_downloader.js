@@ -49,6 +49,10 @@ class VideoDownloader
     this._readyMessages = [];
     this._readyMessagesSent = false;
     this._info = {};
+    this._persistentRequests = {};
+    this._persistentReaders = {};
+    this._persistentOffsets = {};
+    this._workerMemoryBuffer = {};
     this._fileInfoRequested = false;
     this._infoObjectsInitialized = 0;
     for (var idx = 0; idx < this._num_res; idx++)
@@ -137,6 +141,7 @@ class VideoDownloader
   processInitResponses(buf_idx,info)
   {
     var that = this;
+    this._persistentRequests[buf_idx] = null;
     if (info.status == 200)
     {
       info.json().then(data => {
@@ -706,7 +711,7 @@ class VideoDownloader
   // #TODO This needs to be changed. But packet_limit is currently
   //       only used for specifically grabbing the first two packets (the init info).
   //       This should be changed so that anyone can use the packet_limit.
-  downloadNextSegment(buf_idx, packet_limit)
+  async downloadNextSegment(buf_idx, packet_limit)
   {
     var currentSize=0;
     var idx = this._currentPacket[buf_idx];
@@ -768,43 +773,115 @@ class VideoDownloader
     var percent_complete=idx/this._numPackets[buf_idx];
     this._currentPacket[buf_idx] = idx;
 
-    let headers = {'range':`bytes=${startByte}-${startByte+currentSize-1}`,
-                   ...self._headers};
-    var that = this;
-    fetch(this._media_files[buf_idx].path,
-          {headers: headers}
-         ).then(
-           (response) =>
-           {
-             response.arrayBuffer().then(
-               (buffer) =>
-               {
-                var sb = new SharedArrayBuffer(buffer.byteLength);
-                var sourceBytes = new Uint8Array(buffer);
-                var destBytes = new Uint8Array(sb);
-                destBytes.set(sourceBytes, 0);
-                 // Transfer the buffer to the
-                 var data={"type": "buffer",
-                           "buf_idx" : buf_idx,
-                           "pts_start": 0,
-                           "pts_end": 0,
-                           "percent_complete": percent_complete,
-                           "offsets": offsets,
-                           "buffer": sb,
-                           "init": packet_limit == 2,
-                           "frameStart": frameStart,
-                           "startByte": startByte};
-                  postMessage(data, []);
+    if (packet_limit === Infinity)
+    {
+      // If we are fetching everything in the file, do a persistent request
+      let persistentRequest = this._persistentRequests[buf_idx];
+      if (persistentRequest == null) {
+        persistentRequest = await fetch(this._media_files[buf_idx].path, { headers: this._headers });
+        this._persistentRequests[buf_idx] = persistentRequest;
+        this._persistentReaders[buf_idx] = persistentRequest.body.getReader();
+        this._persistentOffsets[buf_idx] = 0;
 
-                 if (packet_limit == 2) {
-                   that._fileInfoSent[buf_idx] = true;
+        // Resizable ArrayBuffer — experimental
+        this._workerMemoryBuffer[buf_idx] = new ArrayBuffer(0, { maxByteLength: 4 * 1024 * 1024 * 1024 });
+      }
 
-                   // If the initialization of each of the files have been completed,
-                   // send out the ready messages for each of the buffers.
-                   that.sendReadyMessages();
-                 }
-               });
-           });
+      let buffer = this._workerMemoryBuffer[buf_idx];
+      let view = new Uint8Array(buffer);
+      let offset = this._persistentOffsets[buf_idx];
+      const endByte = startByte + currentSize - 1;
+
+      // Read until enough data is available
+      while (endByte >= offset) {
+        const { done, value } = await this._persistentReaders[buf_idx].read();
+        if (done) {
+          console.debug(`Persistent reader for buffer ${buf_idx} is done reading`);
+          break;
+        }
+
+        const newBytes = new Uint8Array(value);
+        const newSize = offset + newBytes.byteLength;
+
+        try {
+          buffer.resize(newSize);
+        } catch (error) {
+          console.error(`Error resizing buffer for buf_idx ${buf_idx}:`, error);
+        }
+
+        view = new Uint8Array(buffer); // Refresh view
+        view.set(newBytes, offset);
+        offset += newBytes.byteLength;
+        this._persistentOffsets[buf_idx] = offset;
+      }
+
+      // Slice the data we care about
+      const subArray = view.slice(startByte, endByte + 1);
+
+      // Optional: trim memory buffer (commented out for performance)
+      // const remaining = view.slice(endByte + 1);
+      // this._workerMemoryBuffer[buf_idx] = new ArrayBuffer(remaining.length, { maxByteLength: 4 * 1024 * 1024 * 1024 });
+      // new Uint8Array(this._workerMemoryBuffer[buf_idx]).set(remaining);
+      // this._persistentOffsets[buf_idx] = 0;
+
+      const data = {
+        type: "buffer",
+        buf_idx,
+        pts_start: 0,
+        pts_end: 0,
+        percent_complete,
+        offsets,
+        buffer: subArray.buffer,
+        init: packet_limit == 2,
+        frameStart,
+        startByte
+      };
+
+      postMessage(data, [subArray.buffer]);
+
+
+    }
+    else
+    {
+      // If we are getting the first two packets do it the old way with a ranged request
+      let headers = {'range':`bytes=${startByte}-${startByte+currentSize-1}`,
+                    ...self._headers};
+      var that = this;
+      fetch(this._media_files[buf_idx].path,
+            {headers: headers}
+          ).then(
+            (response) =>
+            {
+              response.arrayBuffer().then(
+                (buffer) =>
+                {
+                  var sb = new SharedArrayBuffer(buffer.byteLength);
+                  var sourceBytes = new Uint8Array(buffer);
+                  var destBytes = new Uint8Array(sb);
+                  destBytes.set(sourceBytes, 0);
+                  // Transfer the buffer to the
+                  var data={"type": "buffer",
+                            "buf_idx" : buf_idx,
+                            "pts_start": 0,
+                            "pts_end": 0,
+                            "percent_complete": percent_complete,
+                            "offsets": offsets,
+                            "buffer": sb,
+                            "init": packet_limit == 2,
+                            "frameStart": frameStart,
+                            "startByte": startByte};
+                    postMessage(data, []);
+
+                  if (packet_limit == 2) {
+                    that._fileInfoSent[buf_idx] = true;
+
+                    // If the initialization of each of the files have been completed,
+                    // send out the ready messages for each of the buffers.
+                    that.sendReadyMessages();
+                  }
+                });
+            });
+    }
   }
 
   scrubDownloadDisabled() {
