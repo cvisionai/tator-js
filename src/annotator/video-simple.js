@@ -7,8 +7,6 @@
 // @TODO: Supply a 'cv2.VideoDecode.read()' type interface for client-side decode
 //        operations.
 
-import Hls from 'hls.js';
-
 class SimpleVideoWrapper {
   constructor(parent, name, path)
   {
@@ -295,7 +293,9 @@ export class TatorSimpleVideo {
     this._compat = true; // Set to tell higher level code this is the simple player.
   }
 
-  hls(playlistUrl) {
+  async hls(playlistUrl) {
+    const { default: Hls } = await import('hls.js');
+
     let config = {maxBufferHole: 2.0, maxBufferSize: 200*1000*1000, maxBufferLength: 240, backBufferLength:2};
     this._hls = new Hls(config);
 
